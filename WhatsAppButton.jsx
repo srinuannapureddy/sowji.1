@@ -1,5 +1,5 @@
 import React from 'react';
-import { WHATSAPP } from '../api/client.js';
+import { WHATSAPP } from './client.js';
 export default function WhatsAppButton() {
   if (!WHATSAPP) return null;
   return (
