@@ -1,0 +1,7 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+body { @apply bg-ivory text-charcoal font-body; }
+h1,h2,h3 { @apply font-display text-wine; }
+.btn { @apply inline-block px-6 py-3 text-sm uppercase tracking-widest transition-colors duration-200; }
+.btn-wine { @apply btn bg-wine text-ivory hover:bg-charcoal; }
+.btn-gold { @apply btn border border-gold text-wine hover:bg-gold hover:text-white; }
+.divider { @apply mx-auto my-3 h-px w-24 bg-gold; }
