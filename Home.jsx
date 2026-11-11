@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import ProductGrid from '../components/ProductGrid.jsx';
+import ProductGrid from './ProductGrid.jsx';
 import { api, CATEGORIES, INSTAGRAM } from '../api/client.js';
 const promo = [['Wedding Collection', 'Bridal grandeur', '/category/bridal-sarees'], ['Festive Collection', 'Luminous festive edit', '/shop?occasion=Festive'], ['New Arrivals', 'Just unveiled', '/shop?sort=newest']];
 const seasons = [['Wedding Season', '/shop?occasion=Wedding'], ['Festive Edit', '/shop?occasion=Festive'], ['Summer Collection', '/shop?occasion=Summer'], ['Traditional Heritage', '/shop?occasion=Traditional'], ['Party Wear', '/category/party-wear-sarees'], ['Everyday Elegance', '/category/daily-wear-sarees']];
