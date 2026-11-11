@@ -1,15 +1,24 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
+
 import App from './App.jsx';
 import { StoreProvider } from './store.jsx';
 import './index.css';
 
-createRoot(document.getElementById('root')).render(
-  <BrowserRouter basename="/sowji.1">
-    <StoreProvider>
-      <App />
-    </StoreProvider>
-  </BrowserRouter>
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error('Root element not found. Check index.html');
+}
+
+createRoot(rootElement).render(
+  <React.StrictMode>
+    <HashRouter>
+      <StoreProvider>
+        <App />
+      </StoreProvider>
+    </HashRouter>
+  </React.StrictMode>
 );
