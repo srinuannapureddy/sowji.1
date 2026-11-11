@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || '';
+const BASE = import.meta.env.VITE_API_URL || 'https://sowji-backend.onrender.com';
 export async function api(path, opts = {}) {
   const res = await fetch(BASE + '/api' + path, {
     credentials: 'include',
