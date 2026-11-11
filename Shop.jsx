@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import ProductGrid from '../components/ProductGrid.jsx';
+import ProductGrid from './ProductGrid.jsx';
 import { CATEGORIES } from '../api/client.js';
 export default function Shop() {
   const { slug } = useParams();
