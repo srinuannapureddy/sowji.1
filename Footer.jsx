@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { INSTAGRAM, WHATSAPP } from '../api/client.js';
+import { WHATSAPP, INSTAGRAM } from './client.js';
 const col = (t, items) => (
   <div><h3 className="mb-3 text-lg !text-gold">{t}</h3>
     {items.map(([to, l]) => <Link key={l} to={to} className="block py-1 text-sm text-ivory/80 hover:text-gold">{l}</Link>)}</div>
