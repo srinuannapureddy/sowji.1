@@ -1,22 +1,27 @@
 
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* =================================
-   SOWJI COLLECTIONS - GLOBAL DESIGN
-================================= */
+/* ==========================================
+   SOWJI COLLECTIONS — LUXURY DESIGN SYSTEM
+========================================== */
 
 :root {
-  --ivory: #fbf8f2;
-  --cream: #f3ece1;
-  --wine: #681f32;
-  --wine-dark: #431321;
+  --ivory: #faf7f1;
+  --cream: #f0e8dc;
+  --wine: #541b30;
+  --wine-dark: #351321;
+  --wine-light: #8b4357;
   --gold: #b89555;
+  --gold-light: #e5c994;
   --charcoal: #292522;
-  --muted: #81776e;
+  --muted: #81746c;
   --white: #ffffff;
-  --border: #e8dfd3;
+  --border: #e6dacb;
+  --shadow: 0 15px 45px rgba(53, 19, 33, 0.08);
 }
 
 * {
@@ -25,6 +30,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 90px;
 }
 
 body {
@@ -32,25 +38,30 @@ body {
   padding: 0;
   background: var(--ivory);
   color: var(--charcoal);
-  font-family: 'Poppins', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.75;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5,
+.font-display {
   font-family: 'Playfair Display', serif;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
   color: var(--wine);
-  line-height: 1.25;
-  font-weight: 600;
-}
-
-h1 {
-  font-size: clamp(2.2rem, 5vw, 4.5rem);
-}
-
-h2 {
-  font-size: clamp(1.8rem, 3vw, 2.8rem);
 }
 
 p {
@@ -62,7 +73,10 @@ a {
   text-decoration: none;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -73,29 +87,51 @@ button {
 img {
   display: block;
   max-width: 100%;
+  object-fit: cover;
 }
-
-/* Selection */
 
 ::selection {
   background: var(--wine);
   color: white;
 }
 
-/* Buttons */
+/* ==========================================
+   SCROLLBAR
+========================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ivory);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a78360;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--wine);
+}
+
+/* ==========================================
+   BUTTONS
+========================================== */
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   padding: 13px 27px;
   border: 1px solid transparent;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  transition: all 0.35s ease;
 }
 
 .btn-wine {
@@ -105,6 +141,8 @@ img {
 
 .btn-wine:hover {
   background: var(--wine-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 
 .btn-gold {
@@ -118,7 +156,49 @@ img {
   color: white;
 }
 
-/* Section headings */
+/* ==========================================
+   HEADER & NAVIGATION
+========================================== */
+
+header {
+  position: relative;
+  z-index: 50;
+  background: rgba(250, 247, 241, 0.97);
+  border-bottom: 1px solid var(--border);
+}
+
+header a,
+header button {
+  transition: color 0.3s ease;
+}
+
+header a:hover,
+header button:hover {
+  color: var(--gold);
+}
+
+header nav a {
+  position: relative;
+}
+
+header nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -7px;
+  width: 0;
+  height: 1px;
+  background: var(--gold);
+  transition: width 0.3s ease;
+}
+
+header nav a:hover::after {
+  width: 100%;
+}
+
+/* ==========================================
+   SECTION HEADINGS
+========================================== */
 
 .section-heading {
   text-align: center;
@@ -126,11 +206,11 @@ img {
 }
 
 .section-heading p {
-  font-size: 11px;
-  letter-spacing: 3px;
+  font-size: 10px;
+  letter-spacing: 4px;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .section-heading h2 {
@@ -139,12 +219,14 @@ img {
 
 .divider {
   width: 65px;
-  height: 2px;
+  height: 1px;
   background: var(--gold);
-  margin: 16px auto;
+  margin: 18px auto;
 }
 
-/* Page layout */
+/* ==========================================
+   LAYOUT
+========================================== */
 
 .container {
   width: min(1200px, 92%);
@@ -152,41 +234,43 @@ img {
   margin-right: auto;
 }
 
-/* Images */
+section {
+  position: relative;
+}
 
-img {
-  object-fit: cover;
+/* ==========================================
+   CATEGORY & PRODUCT IMAGES
+========================================== */
+
+.category-card,
+.product-card {
+  overflow: hidden;
+  background: white;
+  border: 1px solid var(--border);
 }
 
 .category-card img,
 .product-card img {
   width: 100%;
-  transition: transform 0.5s ease;
-}
-
-.category-card,
-.product-card {
-  overflow: hidden;
+  transition: transform 0.7s cubic-bezier(.2,.7,.2,1);
 }
 
 .category-card:hover img,
 .product-card:hover img {
-  transform: scale(1.04);
+  transform: scale(1.055);
 }
 
-/* Product cards */
-
 .product-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.4s ease, transform 0.4s ease;
 }
 
 .product-card:hover {
-  box-shadow: 0 12px 30px rgba(50, 25, 25, 0.09);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow);
 }
 
 .product-card h3 {
+  font-family: 'Playfair Display', serif;
   font-size: 17px;
   margin: 12px 0 5px;
 }
@@ -195,12 +279,15 @@ img {
   font-size: 13px;
 }
 
-/* Form elements */
+/* ==========================================
+   FORMS
+========================================== */
 
 input,
 textarea,
 select {
   max-width: 100%;
+  border-radius: 0;
 }
 
 input:focus,
@@ -210,18 +297,73 @@ select:focus {
   border-color: var(--gold);
 }
 
-/* Newsletter */
+input::placeholder,
+textarea::placeholder {
+  color: #a49a90;
+}
+
+/* ==========================================
+   NEWSLETTER
+========================================== */
 
 .newsletter {
   background: var(--cream);
-  padding: 55px 20px;
+  padding: 60px 20px;
   text-align: center;
 }
 
-/* Footer */
+/* ==========================================
+   FLOWING DECORATIVE EFFECTS
+========================================== */
+
+.fabric-line {
+  pointer-events: none;
+  position: absolute;
+  border: 1px solid rgba(184, 149, 85, 0.25);
+  border-radius: 50%;
+}
+
+.flowing-decoration {
+  pointer-events: none;
+  animation: gentleFlow 10s ease-in-out infinite;
+}
+
+@keyframes gentleFlow {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+@keyframes elegantFade {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.elegant-fade {
+  animation: elegantFade 0.9s ease both;
+}
+
+/* ==========================================
+   FOOTER
+========================================== */
 
 footer {
   background: var(--wine-dark);
+  color: white;
+}
+
+footer h2,
+footer h3,
+footer h4 {
   color: white;
 }
 
@@ -231,10 +373,31 @@ footer a {
 }
 
 footer a:hover {
-  color: var(--gold);
+  color: var(--gold-light);
 }
 
-/* Responsive design */
+/* ==========================================
+   INTERACTIVE ELEMENTS
+========================================== */
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+========================================== */
 
 @media (max-width: 768px) {
   body {
@@ -253,6 +416,10 @@ footer a:hover {
   .container {
     width: 94%;
   }
+
+  header nav {
+    gap: 12px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -266,5 +433,20 @@ footer a:hover {
 
   .section-heading {
     margin: 35px auto 20px;
+  }
+}
+
+/* ==========================================
+   REDUCED MOTION ACCESSIBILITY
+========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
