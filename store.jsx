@@ -25,21 +25,15 @@ const save = (key, value) => {
   }
 };
 
-// Unique cart identity: same product + same colour = same item.
+// Each product and selected colour gets its own cart identity.
 const getCartKey = (item) => {
   if (item.cartKey) return item.cartKey;
 
-  const color = String(item.selectedColor || '').trim().toLowerCase();
+  const color = String(item.selectedColor || item.color || '')
+    .trim()
+    .toLowerCase();
+
   return `${item._id}::${color}`;
-};
-
-const getMaxStock = (stock) => {
-  if (stock === null || stock === undefined || stock === '') {
-    return 99;
-  }
-
-  const value = Number(stock);
-  return Number.isFinite(value) && value >= 0 ? value : 99;
 };
 
 export function StoreProvider({ children }) {
@@ -50,20 +44,47 @@ export function StoreProvider({ children }) {
     }))
   );
 
-  const [wishlist, setWishlist] = useState(() => load('sowji_wish'));
-  const [compare, setCompare] = useState(() => load('sowji_compare'));
+  const [wishlist, setWishlist] = useState(() =>
+    load('sowji_wish')
+  );
+
+  const [compare, setCompare] = useState(() =>
+    load('sowji_compare')
+  );
 
   useEffect(() => save('sowji_cart', cart), [cart]);
   useEffect(() => save('sowji_wish', wishlist), [wishlist]);
   useEffect(() => save('sowji_compare', compare), [compare]);
 
-  // ADD PRODUCT OR COLOUR VARIANT TO CART
+  // ADD PRODUCT WITH SELECTED COLOUR
   const addToCart = (product, quantity = 1) => {
     if (!product?._id) return;
 
-    const requestedQty = Math.max(1, Number(quantity) || 1);
-    const cartKey = getCartKey(product);
-    const maxStock = getMaxStock(product.stock);
+    const selectedColor = String(
+      product.selectedColor || product.color || ''
+    ).trim();
+
+    const cartKey = getCartKey({
+      ...product,
+      selectedColor
+    });
+
+    const requestedQty = Math.max(
+      1,
+      Number(quantity) || 1
+    );
+
+    const stockKnown =
+      product.stock !== null &&
+      product.stock !== undefined &&
+      product.stock !== '';
+
+    const stock = Number(product.stock);
+
+    const maxStock =
+      stockKnown && Number.isFinite(stock)
+        ? Math.max(0, stock)
+        : 99;
 
     if (maxStock <= 0) return;
 
@@ -79,6 +100,7 @@ export function StoreProvider({ children }) {
           return {
             ...item,
             ...product,
+            selectedColor,
             cartKey,
             qty: Math.min(
               maxStock,
@@ -92,6 +114,7 @@ export function StoreProvider({ children }) {
         ...currentCart,
         {
           ...product,
+          selectedColor,
           cartKey,
           qty: Math.min(maxStock, requestedQty)
         }
@@ -99,30 +122,48 @@ export function StoreProvider({ children }) {
     });
   };
 
-  // UPDATE ONLY THE SELECTED CART LINE
-  const updateQty = (cartKey, quantity) => {
+  // UPDATE ONLY THE SELECTED CART ITEM
+  const updateQty = (cartKeyOrId, quantity) => {
     const newQty = Number(quantity);
 
     if (!Number.isFinite(newQty) || newQty < 1) return;
 
     setCart(currentCart =>
       currentCart.map(item => {
-        if (getCartKey(item) !== cartKey) return item;
+        const matches =
+          getCartKey(item) === cartKeyOrId ||
+          (!item.cartKey && item._id === cartKeyOrId);
+
+        if (!matches) return item;
+
+        const stockKnown =
+          item.stock !== null &&
+          item.stock !== undefined &&
+          item.stock !== '';
+
+        const stock = Number(item.stock);
+
+        const maxStock =
+          stockKnown && Number.isFinite(stock)
+            ? Math.max(0, stock)
+            : 99;
 
         return {
           ...item,
-          qty: Math.min(getMaxStock(item.stock), newQty)
+          qty: Math.min(maxStock, newQty)
         };
       }).filter(item => Number(item.qty) > 0)
     );
   };
 
-  // REMOVE ONLY THE SELECTED CART LINE
-  const removeFromCart = (cartKey) => {
+  // REMOVE ONLY THE SELECTED CART ITEM
+  const removeFromCart = (cartKeyOrId) => {
     setCart(currentCart =>
-      currentCart.filter(
-        item => getCartKey(item) !== cartKey
-      )
+      currentCart.filter(item => {
+        if (getCartKey(item) === cartKeyOrId) return false;
+
+        return item._id !== cartKeyOrId;
+      })
     );
   };
 
@@ -138,7 +179,9 @@ export function StoreProvider({ children }) {
       );
 
       return exists
-        ? currentWishlist.filter(item => item._id !== product._id)
+        ? currentWishlist.filter(
+            item => item._id !== product._id
+          )
         : [...currentWishlist, product];
     });
   };
@@ -187,7 +230,9 @@ export function useStore() {
   const context = useContext(Ctx);
 
   if (!context) {
-    throw new Error('useStore must be used inside StoreProvider');
+    throw new Error(
+      'useStore must be used inside StoreProvider'
+    );
   }
 
   return context;
