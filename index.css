@@ -1,7 +1,270 @@
-@tailwind base; @tailwind components; @tailwind utilities;
-body { @apply bg-ivory text-charcoal font-body; }
-h1,h2,h3 { @apply font-display text-wine; }
-.btn { @apply inline-block px-6 py-3 text-sm uppercase tracking-widest transition-colors duration-200; }
-.btn-wine { @apply btn bg-wine text-ivory hover:bg-charcoal; }
-.btn-gold { @apply btn border border-gold text-wine hover:bg-gold hover:text-white; }
-.divider { @apply mx-auto my-3 h-px w-24 bg-gold; }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =================================
+   SOWJI COLLECTIONS - GLOBAL DESIGN
+================================= */
+
+:root {
+  --ivory: #fbf8f2;
+  --cream: #f3ece1;
+  --wine: #681f32;
+  --wine-dark: #431321;
+  --gold: #b89555;
+  --charcoal: #292522;
+  --muted: #81776e;
+  --white: #ffffff;
+  --border: #e8dfd3;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--ivory);
+  color: var(--charcoal);
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Playfair Display', serif;
+  color: var(--wine);
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: clamp(2.2rem, 5vw, 4.5rem);
+}
+
+h2 {
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+}
+
+p {
+  color: var(--muted);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* Selection */
+
+::selection {
+  background: var(--wine);
+  color: white;
+}
+
+/* Buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 27px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-wine {
+  background: var(--wine);
+  color: white;
+}
+
+.btn-wine:hover {
+  background: var(--wine-dark);
+}
+
+.btn-gold {
+  border-color: var(--gold);
+  color: var(--wine);
+  background: transparent;
+}
+
+.btn-gold:hover {
+  background: var(--gold);
+  color: white;
+}
+
+/* Section headings */
+
+.section-heading {
+  text-align: center;
+  margin: 65px auto 35px;
+}
+
+.section-heading p {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.section-heading h2 {
+  margin: 0;
+}
+
+.divider {
+  width: 65px;
+  height: 2px;
+  background: var(--gold);
+  margin: 16px auto;
+}
+
+/* Page layout */
+
+.container {
+  width: min(1200px, 92%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Images */
+
+img {
+  object-fit: cover;
+}
+
+.category-card img,
+.product-card img {
+  width: 100%;
+  transition: transform 0.5s ease;
+}
+
+.category-card,
+.product-card {
+  overflow: hidden;
+}
+
+.category-card:hover img,
+.product-card:hover img {
+  transform: scale(1.04);
+}
+
+/* Product cards */
+
+.product-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  transition: box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+  box-shadow: 0 12px 30px rgba(50, 25, 25, 0.09);
+}
+
+.product-card h3 {
+  font-size: 17px;
+  margin: 12px 0 5px;
+}
+
+.product-card p {
+  font-size: 13px;
+}
+
+/* Form elements */
+
+input,
+textarea,
+select {
+  max-width: 100%;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 1px solid var(--gold);
+  border-color: var(--gold);
+}
+
+/* Newsletter */
+
+.newsletter {
+  background: var(--cream);
+  padding: 55px 20px;
+  text-align: center;
+}
+
+/* Footer */
+
+footer {
+  background: var(--wine-dark);
+  color: white;
+}
+
+footer p,
+footer a {
+  color: #e5d8d2;
+}
+
+footer a:hover {
+  color: var(--gold);
+}
+
+/* Responsive design */
+
+@media (max-width: 768px) {
+  body {
+    font-size: 13px;
+  }
+
+  .section-heading {
+    margin: 42px auto 25px;
+  }
+
+  .btn {
+    padding: 11px 19px;
+    font-size: 10px;
+  }
+
+  .container {
+    width: 94%;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 2.1rem;
+  }
+
+  h2 {
+    font-size: 1.7rem;
+  }
+
+  .section-heading {
+    margin: 35px auto 20px;
+  }
+}
