@@ -5,7 +5,11 @@ import { money } from './client.js';
 import { useStore } from './store.jsx';
 
 export default function Cart() {
-  const { cart = [], updateQty, removeFromCart } = useStore();
+  const {
+    cart = [],
+    updateQty,
+    removeFromCart
+  } = useStore();
 
   const subtotal = cart.reduce(
     (total, item) =>
@@ -41,6 +45,7 @@ export default function Cart() {
         <h1 className="font-display text-3xl text-[#681f32] sm:text-4xl">
           Shopping Cart
         </h1>
+
         <p className="mt-2 text-sm text-[#81776e]">
           Review your selected sarees.
         </p>
@@ -49,12 +54,30 @@ export default function Cart() {
           <div className="space-y-4">
             {cart.map((item) => {
               const image =
-                item.images?.find((img) => img.isMain) ||
+                item.images?.find(img => img.isMain) ||
                 item.images?.[0];
+
+              const cartKey =
+                item.cartKey ||
+                `${item._id}::${String(
+                  item.selectedColor || item.color || ''
+                ).trim().toLowerCase()}`;
+
+              const selectedColor =
+                item.selectedColor || item.color || '';
+
+              const stockKnown =
+                item.stock !== null &&
+                item.stock !== undefined &&
+                item.stock !== '';
+
+              const maxStock = stockKnown
+                ? Math.max(0, Number(item.stock) || 0)
+                : 99;
 
               return (
                 <article
-                  key={item._id}
+                  key={cartKey}
                   className="flex gap-4 border border-[#eee5d9] bg-white p-3 sm:p-5"
                 >
                   <Link
@@ -82,18 +105,35 @@ export default function Cart() {
                       {item.category}
                     </p>
 
+                    {selectedColor && (
+                      <p className="mt-2 text-sm text-[#681f32]">
+                        Colour: <strong>{selectedColor}</strong>
+                      </p>
+                    )}
+
                     <p className="mt-2 font-semibold text-[#292522]">
                       {money(item.price)}
+                    </p>
+
+                    <p className="mt-1 text-xs text-[#81776e]">
+                      Item total: {money(
+                        Number(item.price || 0) *
+                        Number(item.qty || 1)
+                      )}
                     </p>
 
                     <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-4">
                       <div className="flex items-center border border-[#dfcfb9]">
                         <button
                           type="button"
+                          disabled={Number(item.qty || 1) <= 1}
                           onClick={() =>
-                            updateQty(item._id, Number(item.qty || 1) - 1)
+                            updateQty(
+                              cartKey,
+                              Number(item.qty || 1) - 1
+                            )
                           }
-                          className="px-3 py-2"
+                          className="px-3 py-2 disabled:opacity-40"
                           aria-label="Decrease quantity"
                         >
                           −
@@ -105,10 +145,14 @@ export default function Cart() {
 
                         <button
                           type="button"
+                          disabled={Number(item.qty || 1) >= maxStock}
                           onClick={() =>
-                            updateQty(item._id, Number(item.qty || 1) + 1)
+                            updateQty(
+                              cartKey,
+                              Number(item.qty || 1) + 1
+                            )
                           }
-                          className="px-3 py-2"
+                          className="px-3 py-2 disabled:opacity-40"
                           aria-label="Increase quantity"
                         >
                           +
@@ -117,7 +161,7 @@ export default function Cart() {
 
                       <button
                         type="button"
-                        onClick={() => removeFromCart(item._id)}
+                        onClick={() => removeFromCart(cartKey)}
                         className="text-xs text-red-700 underline"
                       >
                         Remove
