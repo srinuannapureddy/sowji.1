@@ -25,8 +25,31 @@ const save = (key, value) => {
   }
 };
 
+// Unique cart identity: same product + same colour = same item.
+const getCartKey = (item) => {
+  if (item.cartKey) return item.cartKey;
+
+  const color = String(item.selectedColor || '').trim().toLowerCase();
+  return `${item._id}::${color}`;
+};
+
+const getMaxStock = (stock) => {
+  if (stock === null || stock === undefined || stock === '') {
+    return 99;
+  }
+
+  const value = Number(stock);
+  return Number.isFinite(value) && value >= 0 ? value : 99;
+};
+
 export function StoreProvider({ children }) {
-  const [cart, setCart] = useState(() => load('sowji_cart'));
+  const [cart, setCart] = useState(() =>
+    load('sowji_cart').map(item => ({
+      ...item,
+      cartKey: getCartKey(item)
+    }))
+  );
+
   const [wishlist, setWishlist] = useState(() => load('sowji_wish'));
   const [compare, setCompare] = useState(() => load('sowji_compare'));
 
@@ -34,28 +57,29 @@ export function StoreProvider({ children }) {
   useEffect(() => save('sowji_wish', wishlist), [wishlist]);
   useEffect(() => save('sowji_compare', compare), [compare]);
 
-  // ADD PRODUCT TO CART
+  // ADD PRODUCT OR COLOUR VARIANT TO CART
   const addToCart = (product, quantity = 1) => {
     if (!product?._id) return;
 
     const requestedQty = Math.max(1, Number(quantity) || 1);
-    const stock = Number(product.stock);
-    const maxStock = Number.isFinite(stock) && stock >= 0 ? stock : 99;
+    const cartKey = getCartKey(product);
+    const maxStock = getMaxStock(product.stock);
 
     if (maxStock <= 0) return;
 
-    setCart((currentCart) => {
+    setCart(currentCart => {
       const existing = currentCart.find(
-        (item) => item._id === product._id
+        item => getCartKey(item) === cartKey
       );
 
       if (existing) {
-        return currentCart.map((item) => {
-          if (item._id !== product._id) return item;
+        return currentCart.map(item => {
+          if (getCartKey(item) !== cartKey) return item;
 
           return {
             ...item,
             ...product,
+            cartKey,
             qty: Math.min(
               maxStock,
               (Number(item.qty) || 1) + requestedQty
@@ -68,75 +92,69 @@ export function StoreProvider({ children }) {
         ...currentCart,
         {
           ...product,
+          cartKey,
           qty: Math.min(maxStock, requestedQty)
         }
       ];
     });
   };
 
-  // UPDATE CART QUANTITY
-  const updateQty = (id, quantity) => {
+  // UPDATE ONLY THE SELECTED CART LINE
+  const updateQty = (cartKey, quantity) => {
     const newQty = Number(quantity);
 
     if (!Number.isFinite(newQty) || newQty < 1) return;
 
-    setCart((currentCart) =>
-      currentCart.map((item) => {
-        if (item._id !== id) return item;
-
-        const stock = Number(item.stock);
-        const maxStock =
-          Number.isFinite(stock) && stock >= 0 ? stock : 99;
+    setCart(currentCart =>
+      currentCart.map(item => {
+        if (getCartKey(item) !== cartKey) return item;
 
         return {
           ...item,
-          qty: Math.min(maxStock, newQty)
+          qty: Math.min(getMaxStock(item.stock), newQty)
         };
-      }).filter((item) => Number(item.qty) > 0)
+      }).filter(item => Number(item.qty) > 0)
     );
   };
 
-  // REMOVE PRODUCT FROM CART
-  const removeFromCart = (id) => {
-    setCart((currentCart) =>
-      currentCart.filter((item) => item._id !== id)
+  // REMOVE ONLY THE SELECTED CART LINE
+  const removeFromCart = (cartKey) => {
+    setCart(currentCart =>
+      currentCart.filter(
+        item => getCartKey(item) !== cartKey
+      )
     );
   };
 
-  // CLEAR CART
   const clearCart = () => setCart([]);
 
-  // ADD OR REMOVE FROM WISHLIST
+  // WISHLIST
   const toggleWish = (product) => {
     if (!product?._id) return;
 
-    setWishlist((currentWishlist) => {
+    setWishlist(currentWishlist => {
       const exists = currentWishlist.some(
-        (item) => item._id === product._id
+        item => item._id === product._id
       );
 
-      if (exists) {
-        return currentWishlist.filter(
-          (item) => item._id !== product._id
-        );
-      }
-
-      return [...currentWishlist, product];
+      return exists
+        ? currentWishlist.filter(item => item._id !== product._id)
+        : [...currentWishlist, product];
     });
   };
 
-  // ADD OR REMOVE FROM COMPARE
+  // COMPARE
   const toggleCompare = (product) => {
     if (!product?._id) return;
 
-    setCompare((currentCompare) => {
+    setCompare(currentCompare => {
       const exists = currentCompare.some(
-        (item) => item._id === product._id
+        item => item._id === product._id
       );
 
       if (exists) {
         return currentCompare.filter(
-          (item) => item._id !== product._id
+          item => item._id !== product._id
         );
       }
 
@@ -169,9 +187,7 @@ export function useStore() {
   const context = useContext(Ctx);
 
   if (!context) {
-    throw new Error(
-      'useStore must be used inside StoreProvider'
-    );
+    throw new Error('useStore must be used inside StoreProvider');
   }
 
   return context;
