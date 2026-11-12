@@ -13,28 +13,64 @@ export default function ProductCard({ p }) {
     compare = []
   } = useStore();
 
-  const price =
-    p.discountPrice && p.discountPrice < p.price
-      ? p.discountPrice
-      : p.price;
+  // Never invent or assume a product price.
+  const hasPrice =
+    p.price !== null &&
+    p.price !== undefined &&
+    p.price !== '' &&
+    Number.isFinite(Number(p.price)) &&
+    Number(p.price) > 0;
 
-  const off =
-    price < p.price && p.price > 0
-      ? Math.round(((p.price - price) / p.price) * 100)
-      : 0;
+  const hasDiscount =
+    hasPrice &&
+    p.discountPrice !== null &&
+    p.discountPrice !== undefined &&
+    Number(p.discountPrice) > 0 &&
+    Number(p.discountPrice) < Number(p.price);
 
-  const out = Number(p.stock) <= 0;
-  const main = p.images?.find((i) => i.isMain) || p.images?.[0];
+  const price = hasDiscount
+    ? Number(p.discountPrice)
+    : hasPrice
+      ? Number(p.price)
+      : null;
+
+  const off = hasDiscount
+    ? Math.round(
+        ((Number(p.price) - price) / Number(p.price)) * 100
+      )
+    : 0;
+
+  const stockKnown =
+    p.stock !== null &&
+    p.stock !== undefined &&
+    p.stock !== '' &&
+    Number.isFinite(Number(p.stock));
+
+  const out = stockKnown && Number(p.stock) <= 0;
+
+  const main =
+    p.images?.find((image) => image.isMain && image.url) ||
+    p.images?.find((image) => image.url);
 
   const wished = wishlist.some((x) => x._id === p._id);
   const compared = compare.some((x) => x._id === p._id);
 
+  const instagramUrl =
+    typeof p.instagramUrl === 'string' &&
+    p.instagramUrl.startsWith('https://www.instagram.com/')
+      ? p.instagramUrl
+      : typeof p.sourcePostUrl === 'string' &&
+        p.sourcePostUrl.startsWith('https://www.instagram.com/')
+        ? p.sourcePostUrl
+        : null;
+
+  const unavailable = out;
+
   return (
-    <article className="group flex h-full flex-col overflow-hidden border border-[#eee5d9] bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <article className="group flex h-full flex-col overflow-hidden border border-[#eee5d9] bg-white transition duration-500 hover:-translate-y-1 hover:shadow-xl">
 
-      {/* PRODUCT IMAGE */}
+      {/* AUTHENTIC PRODUCT IMAGE */}
       <div className="relative aspect-[3/4] overflow-hidden bg-[#f3ece1]">
-
         <Link
           to={`/product/${p.slug}`}
           className="block h-full w-full"
@@ -43,7 +79,7 @@ export default function ProductCard({ p }) {
           {main?.url ? (
             <img
               src={main.url}
-              alt={p.name}
+              alt={p.name || 'Sowji saree'}
               loading="lazy"
               className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
             />
@@ -54,7 +90,7 @@ export default function ProductCard({ p }) {
                 Sowji Collections
               </span>
               <span className="mt-2 text-xs text-[#92785c]">
-                Product image coming soon
+                Authentic product photograph coming soon
               </span>
             </div>
           )}
@@ -63,7 +99,7 @@ export default function ProductCard({ p }) {
         {/* PRODUCT LABELS */}
         <div className="absolute left-3 top-3 flex flex-col items-start gap-2">
           {off > 0 && (
-            <span className="bg-[#681f32] px-3 py-1 text-[10px] font-medium tracking-wider text-white">
+            <span className="bg-[#681f32] px-3 py-1 text-[10px] tracking-wider text-white">
               {off}% OFF
             </span>
           )}
@@ -76,12 +112,12 @@ export default function ProductCard({ p }) {
 
           {out && (
             <span className="bg-[#292522] px-3 py-1 text-[10px] uppercase tracking-wider text-white">
-              Sold Out
+              Unavailable
             </span>
           )}
         </div>
 
-        {/* ACTION ICONS */}
+        {/* WISHLIST AND COMPARE */}
         <div className="absolute right-3 top-3 flex flex-col gap-2">
           <button
             type="button"
@@ -112,7 +148,7 @@ export default function ProductCard({ p }) {
           </button>
         </div>
 
-        {/* QUICK VIEW OVERLAY */}
+        {/* VIEW PRODUCT */}
         <Link
           to={`/product/${p.slug}`}
           className="absolute bottom-0 left-0 right-0 translate-y-full bg-[#681f32]/95 py-3 text-center text-[10px] uppercase tracking-[3px] text-white transition-transform duration-300 group-hover:translate-y-0"
@@ -121,9 +157,8 @@ export default function ProductCard({ p }) {
         </Link>
       </div>
 
-      {/* PRODUCT DETAILS */}
+      {/* PRODUCT INFORMATION */}
       <div className="flex flex-1 flex-col p-3 text-center sm:p-4">
-
         {p.category && (
           <p className="mb-1 text-[10px] uppercase tracking-[2px] text-[#b89555]">
             {p.category}
@@ -144,34 +179,42 @@ export default function ProductCard({ p }) {
         )}
 
         {/* PRICE */}
-        <div className="mt-3 flex min-h-[25px] items-center justify-center gap-2">
-          {off > 0 && (
+        <div className="mt-3 flex min-h-[25px] flex-wrap items-center justify-center gap-2">
+          {hasDiscount && (
             <del className="text-xs text-[#999087]">
               {money(p.price)}
             </del>
           )}
 
-          <strong className="text-base font-semibold text-[#292522]">
-            {money(price)}
-          </strong>
+          {hasPrice ? (
+            <strong className="text-base font-semibold text-[#292522]">
+              {money(price)}
+            </strong>
+          ) : (
+            <strong className="text-sm font-semibold text-[#681f32]">
+              Contact for Price
+            </strong>
+          )}
         </div>
 
-        {/* STOCK STATUS */}
+        {/* STOCK */}
         <p className={`mt-2 text-[10px] tracking-wide ${
           out
             ? 'text-red-700'
-            : p.stock <= 3
+            : stockKnown && Number(p.stock) <= 3
               ? 'text-amber-700'
-              : 'text-green-800'
+              : 'text-[#81776e]'
         }`}>
           {out
             ? 'Currently unavailable'
-            : p.stock <= 3
-              ? `Only ${p.stock} left`
-              : 'In stock'}
+            : stockKnown && Number(p.stock) <= 3
+              ? `Only ${Number(p.stock)} left`
+              : stockKnown
+                ? 'In stock'
+                : 'Check availability'}
         </p>
 
-        {/* BUTTONS */}
+        {/* ACTIONS */}
         <div className="mt-auto flex gap-2 pt-4">
           <Link
             to={`/product/${p.slug}`}
@@ -180,14 +223,25 @@ export default function ProductCard({ p }) {
             View Details
           </Link>
 
-          <button
-            type="button"
-            disabled={out}
-            onClick={() => addToCart({ ...p, price })}
-            className="flex flex-1 items-center justify-center bg-[#681f32] px-2 py-2.5 text-[9px] uppercase tracking-wider text-white transition hover:bg-[#431321] disabled:cursor-not-allowed disabled:opacity-40 sm:text-[10px]"
-          >
-            Add to Cart
-          </button>
+          {instagramUrl ? (
+            <a
+              href={instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-1 items-center justify-center bg-[#681f32] px-2 py-2.5 text-[9px] uppercase tracking-wider text-white transition hover:bg-[#431321] sm:text-[10px]"
+            >
+              Enquire
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled={unavailable || !hasPrice}
+              onClick={() => addToCart({ ...p, price })}
+              className="flex flex-1 items-center justify-center bg-[#681f32] px-2 py-2.5 text-[9px] uppercase tracking-wider text-white transition hover:bg-[#431321] disabled:cursor-not-allowed disabled:opacity-40 sm:text-[10px]"
+            >
+              Add to Cart
+            </button>
+          )}
         </div>
       </div>
     </article>
