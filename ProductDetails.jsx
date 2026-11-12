@@ -1,15 +1,18 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { api, money } from './client.js';
+import { api, money, INSTAGRAM } from './client.js';
 import { useStore } from './store.jsx';
 
 export default function ProductDetails() {
   const { slug } = useParams();
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [qty, setQty] = useState(1);
+  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedImage, setSelectedImage] = useState(0);
 
   const { addToCart, toggleWish, wishlist = [] } = useStore();
 
@@ -20,20 +23,25 @@ export default function ProductDetails() {
     setError('');
     setProduct(null);
     setQty(1);
+    setSelectedColor('');
+    setSelectedImage(0);
 
     api(`/products/${encodeURIComponent(slug)}`)
-      .then((data) => {
+      .then(data => {
         if (!active) return;
 
         const found = data.item || data.product || data;
+
         if (!found || !found._id) {
           throw new Error('Product not found');
         }
 
         setProduct(found);
       })
-      .catch((err) => {
-        if (active) setError(err.message || 'Unable to load product.');
+      .catch(err => {
+        if (active) {
+          setError(err.message || 'Unable to load product.');
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -43,6 +51,30 @@ export default function ProductDetails() {
       active = false;
     };
   }, [slug]);
+
+  const images = useMemo(
+    () => (product?.images || []).filter(image => image?.url),
+    [product]
+  );
+
+  const colors = useMemo(() => {
+    if (!product) return [];
+
+    const supplied = product.colors || product.colorVariants || [];
+
+    const normalized = supplied
+      .map(item => {
+        if (typeof item === 'string') return item;
+        return item?.name || item?.color || '';
+      })
+      .filter(Boolean);
+
+    if (!normalized.length && product.color) {
+      normalized.push(product.color);
+    }
+
+    return [...new Set(normalized)];
+  }, [product]);
 
   if (loading) {
     return (
@@ -71,44 +103,129 @@ export default function ProductDetails() {
     );
   }
 
-  const images = product.images || [];
   const mainImage =
-    images.find((image) => image.isMain) || images[0];
+    images.find(image => image.isMain) || images[0];
 
-  const price =
-    product.discountPrice &&
-    product.discountPrice < product.price
-      ? product.discountPrice
-      : product.price;
+  const activeImage = images[selectedImage] || mainImage;
 
-  const wished = wishlist.some((item) => item._id === product._id);
-  const out = Number(product.stock) <= 0;
+  const hasPrice =
+    product.price !== null &&
+    product.price !== undefined &&
+    product.price !== '' &&
+    Number.isFinite(Number(product.price)) &&
+    Number(product.price) > 0;
+
+  const hasDiscount =
+    hasPrice &&
+    product.discountPrice !== null &&
+    product.discountPrice !== undefined &&
+    Number(product.discountPrice) > 0 &&
+    Number(product.discountPrice) < Number(product.price);
+
+  const finalPrice = hasDiscount
+    ? Number(product.discountPrice)
+    : hasPrice
+      ? Number(product.price)
+      : null;
+
+  const stockKnown =
+    product.stock !== null &&
+    product.stock !== undefined &&
+    product.stock !== '' &&
+    Number.isFinite(Number(product.stock));
+
+  const out = stockKnown && Number(product.stock) <= 0;
+
+  const wished = wishlist.some(
+    item => item._id === product._id
+  );
+
+  const instagramUrl =
+    product.instagramUrl?.startsWith('https://www.instagram.com/')
+      ? product.instagramUrl
+      : product.sourcePostUrl?.startsWith('https://www.instagram.com/')
+        ? product.sourcePostUrl
+        : INSTAGRAM;
+
+  const maxQty = stockKnown
+    ? Math.max(0, Number(product.stock))
+    : 99;
+
+  const increaseQty = () => {
+    setQty(value => Math.min(maxQty, value + 1));
+  };
+
+  const handleAddToCart = () => {
+    if (!hasPrice || out) return;
+
+    addToCart(
+      {
+        ...product,
+        price: finalPrice,
+        selectedColor: selectedColor || product.color || ''
+      },
+      qty
+    );
+  };
 
   return (
     <section className="min-h-screen bg-[#fbf8f2] px-4 py-12 sm:px-6">
       <div className="mx-auto max-w-6xl">
-        <Link to="/shop" className="text-xs uppercase tracking-widest text-[#92785c]">
+
+        <Link
+          to="/shop"
+          className="text-xs uppercase tracking-widest text-[#92785c]"
+        >
           ← Back to Shop
         </Link>
 
         <div className="mt-7 grid gap-10 md:grid-cols-2">
-          <div className="aspect-[3/4] overflow-hidden bg-[#f3ece1]">
-            {mainImage?.url ? (
-              <img
-                src={mainImage.url}
-                alt={product.name}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center font-display text-2xl text-[#681f32]">
-                Sowji Collections
+
+          {/* PRODUCT IMAGE GALLERY */}
+          <div>
+            <div className="aspect-[3/4] overflow-hidden bg-[#f3ece1]">
+              {activeImage?.url ? (
+                <img
+                  src={activeImage.url}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-center font-display text-2xl text-[#681f32]">
+                  Sowji Collections
+                </div>
+              )}
+            </div>
+
+            {images.length > 1 && (
+              <div className="mt-4 grid grid-cols-4 gap-3">
+                {images.map((image, index) => (
+                  <button
+                    key={image.url}
+                    type="button"
+                    onClick={() => setSelectedImage(index)}
+                    className={`aspect-square overflow-hidden border-2 ${
+                      selectedImage === index
+                        ? 'border-[#681f32]'
+                        : 'border-transparent'
+                    }`}
+                  >
+                    <img
+                      src={image.url}
+                      alt={`${product.name} view ${index + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                ))}
               </div>
             )}
           </div>
 
+          {/* PRODUCT INFORMATION */}
           <div className="flex flex-col justify-center">
+
             <p className="text-xs uppercase tracking-[3px] text-[#b89555]">
-              {product.category}
+              {product.category || 'Sowji Collections'}
             </p>
 
             <h1 className="mt-3 font-display text-3xl text-[#681f32] sm:text-4xl">
@@ -121,75 +238,143 @@ export default function ProductDetails() {
               </p>
             )}
 
-            <div className="mt-6 flex items-center gap-3">
-              {price < product.price && (
+            {/* PRICE */}
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              {hasDiscount && (
                 <del className="text-lg text-gray-400">
                   {money(product.price)}
                 </del>
               )}
-              <strong className="text-2xl text-[#681f32]">
-                {money(price)}
-              </strong>
+
+              {hasPrice ? (
+                <strong className="text-2xl text-[#681f32]">
+                  {money(finalPrice)}
+                </strong>
+              ) : (
+                <strong className="text-xl text-[#681f32]">
+                  Contact for Price
+                </strong>
+              )}
             </div>
 
-            <p className="mt-6 leading-7 text-[#71675e]">
-              {product.description || 'Discover this beautiful saree from Sowji Collections.'}
+            <div className="my-6 h-px w-full bg-[#e5d8c7]" />
+
+            <p className="leading-8 text-[#71675e]">
+              {product.description ||
+                'Discover this saree from Sowji Collections. Contact us for product details.'}
             </p>
 
-            <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
+            {/* PRODUCT DETAILS */}
+            <div className="mt-7 grid grid-cols-2 gap-5 text-sm">
               {product.fabric && (
                 <div>
                   <p className="text-xs text-[#92785c]">Fabric</p>
-                  <p className="mt-1 text-[#681f32]">{product.fabric}</p>
+                  <p className="mt-1 text-[#681f32]">
+                    {product.fabric}
+                  </p>
                 </div>
               )}
-              {product.color && (
+
+              {product.category && (
                 <div>
-                  <p className="text-xs text-[#92785c]">Colour</p>
-                  <p className="mt-1 text-[#681f32]">{product.color}</p>
+                  <p className="text-xs text-[#92785c]">Collection</p>
+                  <p className="mt-1 text-[#681f32]">
+                    {product.category}
+                  </p>
                 </div>
               )}
             </div>
 
-            <p className={`mt-6 text-sm ${out ? 'text-red-700' : 'text-green-800'}`}>
-              {out ? 'Currently unavailable' : `${product.stock} available`}
+            {/* COLOUR OPTIONS */}
+            {colors.length > 0 && (
+              <div className="mt-8">
+                <p className="mb-3 text-sm font-medium text-[#681f32]">
+                  Available Colours
+                </p>
+
+                <div className="flex flex-wrap gap-3">
+                  {colors.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setSelectedColor(color)}
+                      className={`border px-5 py-2 text-xs transition ${
+                        selectedColor === color
+                          ? 'border-[#681f32] bg-[#681f32] text-white'
+                          : 'border-[#d9c8b1] bg-white text-[#681f32] hover:border-[#b89555]'
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* STOCK STATUS */}
+            <p className={`mt-7 text-sm ${
+              out ? 'text-red-700' : 'text-green-800'
+            }`}>
+              {out
+                ? 'Currently unavailable'
+                : stockKnown
+                  ? `${product.stock} available`
+                  : 'Availability: Please enquire'}
             </p>
 
-            <div className="mt-6 flex items-center gap-4">
-              <span className="text-sm text-[#681f32]">Quantity</span>
-              <div className="flex items-center border border-[#dfcfb9] bg-white">
-                <button
-                  type="button"
-                  onClick={() => setQty((value) => Math.max(1, value - 1))}
-                  className="px-4 py-2"
-                >
-                  −
-                </button>
-                <span className="min-w-8 text-center">{qty}</span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setQty((value) =>
-                      Math.min(Number(product.stock), value + 1)
-                    )
-                  }
-                  disabled={qty >= Number(product.stock)}
-                  className="px-4 py-2 disabled:opacity-40"
-                >
-                  +
-                </button>
-              </div>
-            </div>
+            {/* QUANTITY */}
+            {hasPrice && !out && (
+              <div className="mt-6 flex items-center gap-4">
+                <span className="text-sm text-[#681f32]">
+                  Quantity
+                </span>
 
+                <div className="flex items-center border border-[#dfcfb9] bg-white">
+                  <button
+                    type="button"
+                    onClick={() => setQty(value => Math.max(1, value - 1))}
+                    className="px-4 py-2"
+                  >
+                    −
+                  </button>
+
+                  <span className="min-w-8 text-center">
+                    {qty}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={increaseQty}
+                    disabled={qty >= maxQty}
+                    className="px-4 py-2 disabled:opacity-40"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ACTION BUTTONS */}
             <div className="mt-7 flex flex-wrap gap-3">
-              <button
-                type="button"
-                disabled={out}
-                onClick={() => addToCart({ ...product, price }, qty)}
-                className="flex-1 bg-[#681f32] px-5 py-4 text-xs uppercase tracking-widest text-white disabled:opacity-40"
-              >
-                Add to Cart
-              </button>
+              {hasPrice ? (
+                <button
+                  type="button"
+                  disabled={out}
+                  onClick={handleAddToCart}
+                  className="flex-1 bg-[#681f32] px-5 py-4 text-xs uppercase tracking-widest text-white transition hover:bg-[#431321] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {out ? 'Unavailable' : 'Add to Cart'}
+                </button>
+              ) : (
+                <a
+                  href={instagramUrl || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-[#681f32] px-5 py-4 text-center text-xs uppercase tracking-widest text-white transition hover:bg-[#431321]"
+                >
+                  Enquire for Price
+                </a>
+              )}
 
               <button
                 type="button"
@@ -200,9 +385,10 @@ export default function ProductDetails() {
               </button>
             </div>
 
-            <p className="mt-5 text-xs text-[#92785c]">
-              A timeless addition to your wardrobe from Sowji Collections.
+            <p className="mt-5 text-xs leading-6 text-[#92785c]">
+              Sowji Collections — discover sarees for your special moments.
             </p>
+
           </div>
         </div>
       </div>
