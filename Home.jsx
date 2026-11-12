@@ -1,461 +1,364 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import ProductGrid from './ProductGrid.jsx';
 import { api, CATEGORIES, INSTAGRAM } from './client.js';
 
-const promo = [
-  {
-    title: 'Wedding Collection',
-    subtitle: 'For your most beautiful moments',
-    link: '/category/bridal-sarees',
-    number: '01'
-  },
-  {
-    title: 'Festive Collection',
-    subtitle: 'Celebrate in timeless elegance',
-    link: '/shop?occasion=Festive',
-    number: '02'
-  },
-  {
-    title: 'New Arrivals',
-    subtitle: 'Discover the latest designs',
-    link: '/shop?sort=newest',
-    number: '03'
-  }
-];
-
-const seasons = [
-  ['Wedding Season', '/shop?occasion=Wedding'],
-  ['Festive Edit', '/shop?occasion=Festive'],
-  ['Summer Collection', '/shop?occasion=Summer'],
-  ['Traditional Heritage', '/shop?occasion=Traditional'],
-  ['Party Wear', '/category/party-wear-sarees'],
-  ['Everyday Elegance', '/category/daily-wear-sarees']
-];
-
-const prices = [
-  ['Under ₹1,000', 0, 1000],
-  ['₹1,000 – ₹2,000', 1000, 2000],
-  ['₹2,000 – ₹4,000', 2000, 4000],
-  ['₹4,000 – ₹6,000', 4000, 6000],
-  ['₹6,000 – ₹10,000', 6000, 10000],
-  ['₹10,000 and above', 10000, '']
-];
-
 const SectionHeading = ({ eyebrow, title, description }) => (
-  <div className="mx-auto mb-9 max-w-2xl text-center">
-    <p className="mb-2 text-xs font-medium uppercase tracking-[4px] text-[#b89555]">
+  <div className="mx-auto mb-12 max-w-2xl text-center">
+    <p className="mb-3 text-[10px] uppercase tracking-[5px] text-[#ad8954]">
       {eyebrow}
     </p>
-    <h2 className="font-display text-3xl text-[#681f32] md:text-4xl">
+    <h2 className="font-display text-3xl text-[#541b30] md:text-5xl">
       {title}
     </h2>
-    <div className="mx-auto my-4 h-px w-16 bg-[#b89555]" />
+    <div className="mx-auto my-5 h-px w-16 bg-[#b89555]" />
     {description && (
-      <p className="text-sm text-[#81776e]">{description}</p>
+      <p className="text-sm leading-7 text-[#81746c]">{description}</p>
     )}
   </div>
 );
 
+function FlowingFabric() {
+  return (
+    <svg
+      viewBox="0 0 600 650"
+      className="h-full w-full"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="fabricOne" x1="80" y1="20" x2="510" y2="600">
+          <stop stopColor="#D6B77E" />
+          <stop offset=".48" stopColor="#8D4559" />
+          <stop offset="1" stopColor="#3B1428" />
+        </linearGradient>
+        <linearGradient id="fabricTwo" x1="500" y1="0" x2="50" y2="650">
+          <stop stopColor="#F1D9AA" />
+          <stop offset=".5" stopColor="#A96A70" />
+          <stop offset="1" stopColor="#5A2038" />
+        </linearGradient>
+      </defs>
+
+      <path
+        d="M430 -40 C170 80 560 170 320 300 C100 420 390 500 120 700"
+        stroke="url(#fabricOne)"
+        strokeWidth="100"
+        strokeLinecap="round"
+        opacity=".72"
+      />
+      <path
+        d="M520 -30 C260 110 620 210 380 340 C180 450 470 560 210 700"
+        stroke="url(#fabricTwo)"
+        strokeWidth="35"
+        strokeLinecap="round"
+        opacity=".85"
+      />
+      <path
+        d="M350 -30 C120 130 480 210 250 360 C50 500 300 580 70 700"
+        stroke="#E7CDA0"
+        strokeWidth="2"
+        opacity=".7"
+      />
+      <path
+        d="M490 -30 C250 120 580 230 350 370 C150 510 400 590 170 700"
+        stroke="#E7CDA0"
+        strokeWidth="1.5"
+        opacity=".55"
+      />
+      <circle cx="300" cy="300" r="175" stroke="#D9B979" opacity=".12" />
+      <circle cx="300" cy="300" r="140" stroke="#D9B979" opacity=".12" />
+    </svg>
+  );
+}
+
 export default function Home() {
-  const [cats, setCats] = useState(CATEGORIES || []);
-  const [reviews, setReviews] = useState([]);
-  const [email, setEmail] = useState('');
-  const [msg, setMsg] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [categories, setCategories] = useState(
+    (CATEGORIES || []).filter((category) =>
+      /saree/i.test(category.name || category.title || '')
+    )
+  );
 
   useEffect(() => {
+    let active = true;
+
     api('/categories')
       .then((data) => {
-        if (Array.isArray(data.items) && data.items.length) {
-          setCats(data.items);
-        }
+        if (!active || !Array.isArray(data.items)) return;
+
+        setCategories(
+          data.items.filter((category) =>
+            /saree/i.test(category.name || category.title || '')
+          )
+        );
       })
       .catch(() => {});
 
-    api('/reviews?featured=true')
-      .then((data) => {
-        setReviews(Array.isArray(data.items) ? data.items : []);
-      })
-      .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const subscribe = async (e) => {
-    e.preventDefault();
-    setMsg('');
-    setSubmitting(true);
-
-    try {
-      await api('/newsletter', {
-        method: 'POST',
-        body: { email }
-      });
-
-      setMsg('Welcome to the Sowji Circle!');
-      setEmail('');
-    } catch (err) {
-      setMsg(err.message || 'Subscription failed. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
-    <main className="overflow-hidden bg-[#fbf8f2]">
+    <main className="overflow-hidden bg-[#faf7f1] text-[#4d2635]">
+
+      <style>{`
+        @keyframes fabricFloat {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-14px) rotate(1deg); }
+        }
+
+        @keyframes fabricDrift {
+          0% { transform: translateX(-3%) scale(1); }
+          50% { transform: translateX(2%) scale(1.03); }
+          100% { transform: translateX(-3%) scale(1); }
+        }
+
+        @keyframes softReveal {
+          from { opacity: 0; transform: translateY(22px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fabric-float {
+          animation: fabricFloat 8s ease-in-out infinite;
+        }
+
+        .fabric-drift {
+          animation: fabricDrift 12s ease-in-out infinite;
+        }
+
+        .soft-reveal {
+          animation: softReveal 1s ease both;
+        }
+
+        .sowji-outline {
+          background: linear-gradient(120deg, #b18b54, #ead5a9, #8b5c49);
+          padding: 1px;
+        }
+
+        .sowji-card {
+          transition: transform .5s ease, box-shadow .5s ease;
+        }
+
+        .sowji-card:hover {
+          transform: translateY(-7px);
+          box-shadow: 0 20px 45px rgba(75, 28, 46, .10);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .fabric-float, .fabric-drift, .soft-reveal {
+            animation: none;
+          }
+        }
+      `}</style>
 
       {/* HERO */}
-      <section className="relative bg-[#4a1727] text-white">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#6d283b] via-[#4a1727] to-[#29101a]" />
+      <section className="relative isolate min-h-[650px] overflow-hidden bg-[#401728] text-white md:min-h-[730px]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#71364a] via-[#401728] to-[#240e1b]" />
 
-        <div className="relative mx-auto grid min-h-[480px] max-w-7xl items-center gap-8 px-5 py-20 md:grid-cols-2 md:px-10 md:py-24">
+        <div className="absolute -right-40 top-0 h-[600px] w-[600px] rounded-full border border-[#d5b77c]/10" />
+        <div className="absolute -right-24 top-16 h-[450px] w-[450px] rounded-full border border-[#d5b77c]/10" />
 
-          <div className="text-center md:text-left">
-            <p className="mb-5 text-xs tracking-[5px] text-[#d5b777]">
+        <div className="relative mx-auto grid min-h-[650px] max-w-7xl items-center gap-5 px-6 py-16 md:min-h-[730px] md:grid-cols-2 md:px-12">
+          <div className="soft-reveal relative z-10 py-10 text-center md:text-left">
+            <p className="mb-6 text-[10px] uppercase tracking-[6px] text-[#dfc18b]">
               SOWJI COLLECTIONS
             </p>
 
-            <h1 className="font-display text-4xl leading-tight text-white md:text-6xl">
-              The Art of
-              <span className="block italic text-[#dfc38e]">
-                Timeless Elegance
+            <h1 className="font-display text-5xl leading-[1.12] md:text-7xl">
+              Elegance
+              <span className="block italic text-[#e5c994]">
+                in Every
               </span>
+              <span className="block">Drape.</span>
             </h1>
 
-            <div className="my-6 h-px w-20 bg-[#c6a15e] mx-auto md:mx-0" />
+            <div className="my-7 mx-auto h-px w-20 bg-[#d0ad72] md:mx-0" />
 
-            <p className="mx-auto max-w-lg text-sm leading-8 text-[#eee1d9] md:mx-0">
-              Discover exquisite sarees crafted to celebrate tradition,
-              beauty and individuality. Every weave tells a story.
+            <p className="mx-auto max-w-md text-sm leading-8 text-[#eadbd9] md:mx-0">
+              Discover the beauty of sarees through timeless style,
+              graceful details and the art of the perfect drape.
             </p>
 
-            <div className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
-              <Link
-                to="/collections"
-                className="inline-flex items-center justify-center bg-[#c5a268] px-7 py-3 text-xs font-medium uppercase tracking-[2px] text-[#351321] transition hover:bg-white"
-              >
-                Explore Collections
-              </Link>
-
+            <div className="mt-9 flex flex-wrap justify-center gap-4 md:justify-start">
               <Link
                 to="/shop"
-                className="inline-flex items-center justify-center border border-[#d8bc8d] px-7 py-3 text-xs font-medium uppercase tracking-[2px] text-white transition hover:bg-white hover:text-[#4a1727]"
+                className="bg-[#d1ae75] px-8 py-4 text-[10px] uppercase tracking-[2.5px] text-[#351321] transition duration-300 hover:bg-[#f2dfb8]"
               >
-                Shop Now
+                Explore Sarees <span className="ml-3">↗</span>
               </Link>
-            </div>
-          </div>
 
-          <div className="mx-auto w-full max-w-md">
-            <div className="relative border border-[#c5a268] p-3">
-              <div className="flex min-h-[300px] flex-col items-center justify-center bg-gradient-to-br from-[#8b4c55] via-[#5c2739] to-[#2e1522] px-5 text-center md:min-h-[370px]">
-                <span className="mb-5 text-5xl text-[#dfc38e]">✦</span>
-                <p className="font-display text-3xl italic text-white md:text-4xl">
-                  Woven with Love
-                </p>
-                <div className="my-5 h-px w-16 bg-[#c5a268]" />
-                <p className="text-xs uppercase tracking-[4px] text-[#dfc38e]">
-                  Tradition · Beauty · Grace
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PROMOTIONAL COLLECTIONS */}
-      <section className="mx-auto max-w-7xl px-5 py-14 md:px-8 md:py-20">
-        <SectionHeading
-          eyebrow="DISCOVER SOWJI"
-          title="Collections to Cherish"
-          description="Find the perfect drape for every occasion."
-        />
-
-        <div className="grid gap-5 md:grid-cols-3">
-          {promo.map((item) => (
-            <Link
-              key={item.title}
-              to={item.link}
-              className="group relative flex min-h-[210px] flex-col justify-between overflow-hidden border border-[#dfcfb9] bg-[#f1e8dc] p-7 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs tracking-[3px] text-[#b89555]">
-                  COLLECTION {item.number}
-                </span>
-                <span className="text-2xl text-[#b89555]">✦</span>
-              </div>
-
-              <div>
-                <p className="mb-2 text-xs uppercase tracking-[2px] text-[#92785c]">
-                  {item.subtitle}
-                </p>
-                <h3 className="font-display text-2xl text-[#681f32]">
-                  {item.title}
-                </h3>
-                <span className="mt-4 inline-block text-xs uppercase tracking-[2px] text-[#681f32] group-hover:text-[#b89555]">
-                  Explore Collection →
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* CATEGORIES */}
-      <section className="bg-white py-16 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <SectionHeading
-            eyebrow="FABRIC CURATIONS"
-            title="Shop by Material"
-            description="Explore timeless fabrics and traditional craftsmanship."
-          />
-
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-6">
-            {cats.map((category, index) => (
               <Link
-                key={category.slug || category.name || index}
-                to={`/category/${category.slug}`}
-                className="group text-center"
+                to="/collections"
+                className="border border-[#d8bd94]/70 px-8 py-4 text-[10px] uppercase tracking-[2.5px] text-white transition duration-300 hover:bg-white hover:text-[#401728]"
               >
-                <div className="aspect-[4/5] overflow-hidden border border-[#e9dfd2] bg-[#f3ece1]">
-                  {category.image ? (
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full flex-col items-center justify-center bg-gradient-to-br from-[#f3e8dc] to-[#e8d6c2] p-3">
-                      <span className="mb-3 text-3xl text-[#b89555]">✦</span>
-                      <span className="font-display text-center text-lg text-[#681f32]">
-                        {category.name}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <h3 className="mt-3 font-display text-base text-[#681f32] transition group-hover:text-[#b89555]">
-                  {category.name}
-                </h3>
-                <span className="mt-1 block text-[10px] uppercase tracking-[2px] text-[#92785c]">
-                  Discover →
-                </span>
+                View Collections
               </Link>
-            ))}
+            </div>
+
+            <p className="mt-12 text-[9px] uppercase tracking-[4px] text-[#d9bd91]/75">
+              The beauty of the Indian saree
+            </p>
+          </div>
+
+          <div className="relative mx-auto h-[390px] w-full max-w-[500px] md:h-[590px]">
+            <div className="fabric-float absolute inset-0">
+              <FlowingFabric />
+            </div>
+
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex h-48 w-48 flex-col items-center justify-center rounded-full border border-[#d6b77e]/40 bg-[#401728]/35 text-center backdrop-blur-sm md:h-60 md:w-60">
+                <span className="text-3xl text-[#e2c18b]">✧</span>
+                <p className="mt-3 font-display text-3xl italic text-[#f0dfbf]">
+                  Sowji
+                </p>
+                <p className="mt-2 text-[8px] uppercase tracking-[4px] text-[#e2c18b]">
+                  Saree Collections
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+
+        <div className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-[#d7b77d]/70 to-transparent" />
       </section>
 
-      {/* BEST SELLERS */}
-      <section className="py-16 md:py-20">
-        <ProductGrid
-          eyebrow="MOST COVETED"
-          title="Best Sellers"
-          query="bestSeller=true&limit=8"
-          viewAllTo="/shop?bestSeller=true"
-          viewAllLabel="View All Best Sellers"
-        />
-      </section>
+      {/* INTRODUCTION */}
+      <section className="relative px-6 py-20 text-center md:py-28">
+        <div className="fabric-drift pointer-events-none absolute left-0 top-0 h-32 w-full opacity-20">
+          <svg viewBox="0 0 1200 120" className="h-full w-full" preserveAspectRatio="none">
+            <path d="M0 65 C250 0 400 130 650 55 S1000 0 1200 60" stroke="#b89555" strokeWidth="1.5" fill="none" />
+            <path d="M0 85 C250 20 400 150 650 75 S1000 20 1200 80" stroke="#b89555" strokeWidth="1" fill="none" />
+          </svg>
+        </div>
 
-      {/* BRIDAL BANNER */}
-      <section className="bg-[#431321] px-5 py-16 text-center md:py-24">
-        <p className="mb-4 text-xs tracking-[4px] text-[#d4b77e]">
-          CURATED EXCELLENCE FOR YOUR SPECIAL DAY
+        <p className="mb-4 text-[10px] uppercase tracking-[5px] text-[#ad8954]">
+          A WORLD OF SAREES
         </p>
 
-        <h2 className="font-display text-4xl text-white md:text-5xl">
-          The Bridal Trousseau
+        <h2 className="font-display text-3xl leading-snug text-[#541b30] md:text-5xl">
+          A graceful tradition.
+          <span className="block italic">An everlasting expression.</span>
         </h2>
 
-        <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[#e8d8d0]">
-          Celebrate your special moments with exquisite sarees
-          inspired by timeless Indian traditions.
+        <div className="mx-auto my-6 h-px w-16 bg-[#b89555]" />
+
+        <p className="mx-auto max-w-2xl text-sm leading-8 text-[#81746c]">
+          Explore saree styles for celebrations, special occasions and
+          everyday elegance. Find a drape that reflects your own style.
         </p>
-
-        <Link
-          to="/category/bridal-sarees"
-          className="mt-8 inline-flex border border-[#d4b77e] px-8 py-3 text-xs uppercase tracking-[2px] text-[#e2c996] transition hover:bg-[#d4b77e] hover:text-[#431321]"
-        >
-          Discover Bridal Collection
-        </Link>
       </section>
 
-      {/* NEW ARRIVALS */}
-      <section className="py-16 md:py-20">
-        <ProductGrid
-          eyebrow="JUST IN"
-          title="Recently Unveiled"
-          query="sort=newest&limit=8"
-          viewAllTo="/shop?sort=newest"
-          viewAllLabel="View All New Arrivals"
-        />
-      </section>
-
-      {/* SEASONAL COLLECTIONS */}
-      <section className="bg-[#f1e9de] py-16 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <SectionHeading
-            eyebrow="SEASONAL EDITS"
-            title="Collections for Every Occasion"
-            description="A beautiful drape for every celebration and everyday moment."
-          />
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-            {seasons.map(([name, link], index) => (
-              <Link
-                key={name}
-                to={link}
-                className="group flex min-h-[105px] items-center justify-between border border-[#dfcfb9] bg-[#fbf8f2] px-6 py-5 transition hover:border-[#681f32] hover:bg-[#681f32]"
-              >
-                <div>
-                  <span className="mb-1 block text-[10px] tracking-[2px] text-[#b89555]">
-                    0{index + 1}
-                  </span>
-                  <h3 className="font-display text-xl text-[#681f32] transition group-hover:text-white">
-                    {name}
-                  </h3>
-                </div>
-                <span className="text-xl text-[#b89555]">→</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRICE COLLECTIONS */}
-      <section className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
-        <SectionHeading
-          eyebrow="BROWSE BY VALUE"
-          title="Find Your Perfect Saree"
-          description="Explore our collections by your preferred price range."
-        />
-
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          {prices.map(([label, min, max]) => (
-            <Link
-              key={label}
-              to={`/shop?minPrice=${min}${max ? `&maxPrice=${max}` : ''}`}
-              className="flex min-h-[90px] items-center justify-center border border-[#dfcfb9] bg-white px-3 text-center text-sm text-[#681f32] transition hover:border-[#681f32] hover:bg-[#681f32] hover:text-white"
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* INSTAGRAM */}
-      {INSTAGRAM && (
-        <section className="border-y border-[#e9dfd2] bg-white px-5 py-12 text-center">
-          <p className="mb-2 text-xs uppercase tracking-[4px] text-[#b89555]">
-            STAY CONNECTED
-          </p>
-          <h2 className="font-display text-3xl text-[#681f32]">
-            Follow Our Journey
-          </h2>
-          <p className="mt-3 text-sm text-[#81776e]">
-            Discover our latest collections and inspirations.
-          </p>
-          <a
-            href={INSTAGRAM}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-6 inline-flex bg-[#681f32] px-8 py-3 text-xs uppercase tracking-[2px] text-white transition hover:bg-[#431321]"
-          >
-            Follow on Instagram
-          </a>
-        </section>
-      )}
-
-      {/* CUSTOMER REVIEWS */}
-      {reviews.length > 0 && (
-        <section className="bg-[#f1e9de] py-16">
-          <div className="mx-auto max-w-7xl px-5 md:px-8">
+      {/* VERIFIED SAREE CATEGORIES */}
+      {categories.length > 0 && (
+        <section className="bg-[#f0e8dc] px-5 py-20 md:px-10 md:py-24">
+          <div className="mx-auto max-w-7xl">
             <SectionHeading
-              eyebrow="CUSTOMER STORIES"
-              title="Words of Appreciation"
-              description="Experiences shared by our customers."
+              eyebrow="THE SAREE EDIT"
+              title="Explore Saree Collections"
+              description="Browse the saree categories available in our collection."
             />
 
-            <div className="grid gap-5 md:grid-cols-3">
-              {reviews.map((review) => (
-                <article
-                  key={review._id}
-                  className="border border-[#e5d8c8] bg-[#fbf8f2] p-6"
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              {categories.map((category, index) => (
+                <Link
+                  key={category.slug || category.name || index}
+                  to={`/category/${category.slug}`}
+                  className="sowji-card group relative overflow-hidden border border-[#d9c8b1] bg-[#faf7f1] p-7 text-center md:p-10"
                 >
-                  <p className="text-lg tracking-widest text-[#b89555]">
-                    {'★'.repeat(Math.max(0, Math.min(5, Number(review.rating) || 0)))}
-                  </p>
+                  <span className="mb-5 block text-2xl text-[#b89555]">
+                    ✧
+                  </span>
 
-                  <p className="my-4 text-sm leading-7 text-[#5d5149]">
-                    “{review.comment}”
-                  </p>
+                  <h3 className="font-display text-xl text-[#541b30] md:text-2xl">
+                    {category.name || category.title}
+                  </h3>
 
-                  <div className="border-t border-[#e5d8c8] pt-4">
-                    <p className="font-display text-base text-[#681f32]">
-                      {review.displayName}
-                    </p>
-                    {review.verifiedPurchase && (
-                      <span className="mt-1 inline-block text-xs text-green-800">
-                        ✔ Verified Purchase
-                      </span>
-                    )}
-                  </div>
-                </article>
+                  <div className="mx-auto my-5 h-px w-10 bg-[#b89555] transition-all duration-500 group-hover:w-20" />
+
+                  <span className="text-[9px] uppercase tracking-[2px] text-[#92785c]">
+                    Explore Sarees ↗
+                  </span>
+
+                  <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#9c7548] transition-all duration-500 group-hover:w-full" />
+                </Link>
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* NEWSLETTER */}
-      <section className="bg-[#fbf8f2] px-5 py-16 md:py-20">
-        <div className="mx-auto max-w-3xl border border-[#dfcfb9] bg-white px-5 py-10 text-center md:px-12 md:py-14">
-          <p className="mb-3 text-xs uppercase tracking-[4px] text-[#b89555]">
-            A LITTLE SOMETHING SPECIAL
+      {/* EDITORIAL BANNER */}
+      <section className="relative overflow-hidden bg-[#4a192e] px-6 py-20 text-center text-white md:py-28">
+        <div className="fabric-float pointer-events-none absolute -right-24 top-0 h-full w-1/2 opacity-30">
+          <FlowingFabric />
+        </div>
+
+        <div className="relative mx-auto max-w-3xl">
+          <p className="mb-5 text-[10px] uppercase tracking-[5px] text-[#d9bd91]">
+            THE SAREE EXPERIENCE
           </p>
 
-          <h2 className="font-display text-3xl text-[#681f32] md:text-4xl">
-            Join the Sowji Circle
+          <h2 className="font-display text-4xl leading-tight md:text-6xl">
+            Every drape has
+            <span className="block italic text-[#e4c895]">
+              its own story.
+            </span>
+          </h2>
+
+          <p className="mx-auto mt-6 max-w-xl text-sm leading-8 text-[#eadbd9]">
+            Discover saree styles that bring together personal expression
+            and the enduring beauty of Indian attire.
+          </p>
+
+          <Link
+            to="/shop"
+            className="mt-9 inline-flex border border-[#d8bd94] px-9 py-4 text-[10px] uppercase tracking-[2px] text-[#f1dfbd] transition hover:bg-[#d8bd94] hover:text-[#401728]"
+          >
+            Explore the Saree Edit ↗
+          </Link>
+        </div>
+      </section>
+
+      {/* INSTAGRAM LOOKBOOK */}
+      {INSTAGRAM && (
+        <section className="bg-[#faf7f1] px-6 py-20 text-center md:py-24">
+          <p className="mb-3 text-[10px] uppercase tracking-[5px] text-[#ad8954]">
+            THE SOWJI LOOKBOOK
+          </p>
+
+          <h2 className="font-display text-3xl text-[#541b30] md:text-5xl">
+            Sarees, stories & style.
           </h2>
 
           <div className="mx-auto my-5 h-px w-16 bg-[#b89555]" />
 
-          <p className="mx-auto mb-7 max-w-lg text-sm leading-7 text-[#81776e]">
-            Be the first to discover new collections, exclusive offers,
-            festive launches and special announcements.
+          <p className="mx-auto max-w-lg text-sm leading-8 text-[#81746c]">
+            Visit our official Instagram to discover original Sowji
+            saree photographs, new designs and collection updates.
           </p>
 
-          <form
-            onSubmit={subscribe}
-            className="mx-auto flex max-w-lg flex-col gap-3 sm:flex-row"
+          <a
+            href={INSTAGRAM}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-8 inline-flex bg-[#541b30] px-9 py-4 text-[10px] uppercase tracking-[2px] text-white transition hover:bg-[#8b4357]"
           >
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email address"
-              className="min-w-0 flex-1 border border-[#dfcfb9] px-4 py-3 text-sm outline-none focus:border-[#681f32]"
-            />
+            Discover Official Saree Lookbook ↗
+          </a>
+        </section>
+      )}
 
-            <button
-              type="submit"
-              disabled={submitting}
-              className="bg-[#681f32] px-7 py-3 text-xs uppercase tracking-[2px] text-white transition hover:bg-[#431321] disabled:opacity-60"
-            >
-              {submitting ? 'Please wait...' : 'Subscribe'}
-            </button>
-          </form>
-
-          {msg && (
-            <p className="mt-4 text-sm text-[#681f32]" role="status">
-              {msg}
-            </p>
-          )}
-        </div>
+      {/* CLOSING DETAIL */}
+      <section className="border-t border-[#e6dacb] bg-[#f0e8dc] px-6 py-12 text-center">
+        <span className="text-2xl text-[#b89555]">✧</span>
+        <p className="mt-3 font-display text-2xl italic text-[#541b30]">
+          Sowji Collections
+        </p>
+        <p className="mt-2 text-[9px] uppercase tracking-[4px] text-[#92785c]">
+          The art of the saree
+        </p>
       </section>
-
     </main>
   );
 }
