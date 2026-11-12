@@ -1,110 +1,131 @@
 
-import React from 'react';
-import {
-  Routes,
-  Route,
-  Link,
-  useLocation
-} from 'react-router-dom';
+import React, { useState } from 'react';
 
-import Header from './Header.jsx';
-import Footer from './Footer.jsx';
-import WhatsAppButton from './WhatsAppButton.jsx';
+export default function Account() {
+  const [mode, setMode] = useState('login');
 
-import Home from './Home.jsx';
-import Shop from './Shop.jsx';
-import Collections from './Collections.jsx';
-import About from './About.jsx';
-import Contact from './Contact.jsx';
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: ''
+  });
 
-import Cart from './Cart.jsx';
-import Wishlist from './Wishlist.jsx';
-import ProductDetails from './ProductDetails.jsx';
+  function updateField(e) {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    });
+  }
 
-function ScrollToTop() {
-  const { pathname, search } = useLocation();
+  function handleSubmit(e) {
+    e.preventDefault();
 
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname, search]);
+    alert(
+      'Account authentication is not connected yet. Please contact the store for assistance.'
+    );
+  }
 
-  return null;
-}
-
-function NotFound() {
   return (
-    <section className="flex min-h-[60vh] items-center justify-center bg-[#fbf8f2] px-5 py-20 text-center">
-      <div>
-        <h1 className="font-display text-5xl text-[#681f32]">
-          404
-        </h1>
+    <section className="min-h-[75vh] bg-[#fbf8f2] px-5 py-16">
+      <div className="mx-auto max-w-md">
+        <div className="border border-[#e8dfd2] bg-white p-8 shadow-sm">
+          <p className="text-center text-xs uppercase tracking-[0.3em] text-[#a17b48]">
+            Sowji Collections
+          </p>
 
-        <p className="mt-4 text-[#81776e]">
-          This page could not be found.
-        </p>
+          <h1 className="mt-4 text-center font-display text-4xl text-[#681f32]">
+            My Account
+          </h1>
 
-        <Link
-          to="/"
-          className="mt-6 inline-block bg-[#681f32] px-8 py-3 text-xs uppercase tracking-widest text-white"
-        >
-          Back to Home
-        </Link>
+          <p className="mt-3 text-center text-sm text-[#81776e]">
+            Welcome to the world of timeless elegance.
+          </p>
+
+          <div className="mt-8 grid grid-cols-2 border-b border-[#e8dfd2]">
+            <button
+              type="button"
+              onClick={() => setMode('login')}
+              className={`py-3 text-xs uppercase tracking-widest ${
+                mode === 'login'
+                  ? 'border-b-2 border-[#681f32] text-[#681f32]'
+                  : 'text-[#81776e]'
+              }`}
+            >
+              Login
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMode('register')}
+              className={`py-3 text-xs uppercase tracking-widest ${
+                mode === 'register'
+                  ? 'border-b-2 border-[#681f32] text-[#681f32]'
+                  : 'text-[#81776e]'
+              }`}
+            >
+              Register
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+            {mode === 'register' && (
+              <input
+                name="name"
+                value={form.name}
+                onChange={updateField}
+                placeholder="Full name"
+                required
+                className="w-full border border-[#e8dfd2] px-4 py-3 text-sm outline-none focus:border-[#681f32]"
+              />
+            )}
+
+            <input
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={updateField}
+              placeholder="Email address"
+              required
+              className="w-full border border-[#e8dfd2] px-4 py-3 text-sm outline-none focus:border-[#681f32]"
+            />
+
+            {mode === 'register' && (
+              <input
+                name="phone"
+                type="tel"
+                value={form.phone}
+                onChange={updateField}
+                placeholder="Phone number"
+                required
+                className="w-full border border-[#e8dfd2] px-4 py-3 text-sm outline-none focus:border-[#681f32]"
+              />
+            )}
+
+            <input
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={updateField}
+              placeholder="Password"
+              required
+              minLength={6}
+              className="w-full border border-[#e8dfd2] px-4 py-3 text-sm outline-none focus:border-[#681f32]"
+            />
+
+            <button
+              type="submit"
+              className="w-full bg-[#681f32] px-6 py-4 text-xs uppercase tracking-[0.2em] text-white transition hover:bg-[#4f1726]"
+            >
+              {mode === 'login' ? 'Sign In' : 'Create Account'}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-xs leading-6 text-[#81776e]">
+            Your Sowji Collections shopping experience begins here.
+          </p>
+        </div>
       </div>
     </section>
   );
 }
-
-export default function App() {
-  return (
-    <>
-      <ScrollToTop />
-
-      <div className="flex min-h-screen flex-col bg-[#fbf8f2]">
-        <Header />
-
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<Home />} />
-
-            <Route path="/shop" element={<Shop />} />
-
-            <Route
-              path="/category/:slug"
-              element={<Shop />}
-            />
-
-            <Route
-              path="/product/:slug"
-              element={<ProductDetails />}
-            />
-
-            <Route
-              path="/collections"
-              element={<Collections />}
-            />
-
-            <Route path="/about" element={<About />} />
-
-            <Route path="/contact" element={<Contact />} />
-
-            <Route path="/cart" element={<Cart />} />
-
-            <Route
-              path="/wishlist"
-              element={<Wishlist />}
-            />
-
-            <Route
-              path="*"
-              element={<NotFound />}
-            />
-          </Routes>
-        </main>
-
-        <Footer />
-      </div>
-
-      <WhatsAppButton />
-    </>
-  );
-} 
