@@ -1,23 +1,138 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { WHATSAPP, INSTAGRAM } from './client.js';
-const col = (t, items) => (
-  <div><h3 className="mb-3 text-lg !text-gold">{t}</h3>
-    {items.map(([to, l]) => <Link key={l} to={to} className="block py-1 text-sm text-ivory/80 hover:text-gold">{l}</Link>)}</div>
-);
+
+const columns = [
+  {
+    title: 'Company',
+    links: [
+      ['/about', 'About Us'],
+      ['/contact', 'Contact Us'],
+      ['/support', 'Customer Support'],
+      ['/faq', 'Frequently Asked Questions']
+    ]
+  },
+  {
+    title: 'Policies',
+    links: [
+      ['/shipping-policy', 'Shipping Policy'],
+      ['/return-policy', 'Returns & Refunds'],
+      ['/privacy-policy', 'Privacy Policy'],
+      ['/terms', 'Terms & Conditions']
+    ]
+  }
+];
+
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="mt-12 bg-wine text-ivory">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-4">
-        <div><img src="/logo.svg" alt="Sowji Collections" className="h-16 rounded bg-ivory p-1" /><p className="mt-3 font-promo text-xl text-gold">Elegance Woven in Every Thread.</p></div>
-        {col('Company', [['/about', 'About Us'], ['/contact', 'Contact Us'], ['/support', 'Customer Support'], ['/faq', 'FAQ']])}
-        {col('Policies', [['/shipping-policy', 'Shipping Policy'], ['/return-policy', 'Return and Refund Policy'], ['/privacy-policy', 'Privacy Policy'], ['/terms', 'Terms and Conditions']])}
-        <div><h3 className="mb-3 text-lg !text-gold">Connect</h3>
-          {INSTAGRAM && <a href={INSTAGRAM} target="_blank" rel="noreferrer" className="block py-1 text-sm">Instagram</a>}
-          {WHATSAPP && <a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer" className="block py-1 text-sm">WhatsApp</a>}
-          <p className="mt-3 text-xs text-ivory/70">Secure payments by Razorpay: UPI, cards, net banking, wallets.</p></div>
+    <footer className="mt-16 bg-[#431321] text-[#fbf8f2]">
+
+      {/* MAIN FOOTER */}
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:gap-12">
+
+        {/* BRAND */}
+        <div>
+          <Link to="/" className="inline-block">
+            <span className="font-display text-3xl font-semibold tracking-[3px] text-[#fbf8f2]">
+              SOWJI
+            </span>
+            <span className="mt-1 block text-xs tracking-[5px] text-[#c7a66b]">
+              COLLECTIONS
+            </span>
+          </Link>
+
+          <div className="my-5 h-px w-16 bg-[#b89555]" />
+
+          <p className="font-display text-xl italic text-[#c7a66b]">
+            Elegance Woven in Every Thread.
+          </p>
+
+          <p className="mt-4 max-w-xs text-sm leading-7 text-[#e8dcd5]">
+            Discover timeless Indian sarees, thoughtfully selected to
+            celebrate tradition, beauty and individuality.
+          </p>
+        </div>
+
+        {/* COMPANY AND POLICY LINKS */}
+        {columns.map((column) => (
+          <div key={column.title}>
+            <h3 className="mb-5 text-sm font-semibold uppercase tracking-[2px] text-[#c7a66b]">
+              {column.title}
+            </h3>
+
+            <ul className="space-y-3">
+              {column.links.map(([to, label]) => (
+                <li key={to}>
+                  <Link
+                    to={to}
+                    className="text-sm text-[#e8dcd5] transition-colors hover:text-[#c7a66b]"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+
+        {/* CONNECT */}
+        <div>
+          <h3 className="mb-5 text-sm font-semibold uppercase tracking-[2px] text-[#c7a66b]">
+            Connect With Us
+          </h3>
+
+          <div className="space-y-3">
+            {INSTAGRAM && (
+              <a
+                href={INSTAGRAM}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-sm text-[#e8dcd5] transition-colors hover:text-[#c7a66b]"
+              >
+                Instagram ↗
+              </a>
+            )}
+
+            {WHATSAPP && (
+              <a
+                href={`https://wa.me/${String(WHATSAPP).replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-sm text-[#e8dcd5] transition-colors hover:text-[#c7a66b]"
+              >
+                WhatsApp ↗
+              </a>
+            )}
+          </div>
+
+          <div className="mt-6 border-t border-[#b89555]/30 pt-5">
+            <p className="text-xs font-medium uppercase tracking-wider text-[#c7a66b]">
+              Secure Shopping
+            </p>
+
+            <p className="mt-2 text-xs leading-6 text-[#e8dcd5]">
+              Secure payments through Razorpay, subject to your checkout
+              configuration.
+            </p>
+          </div>
+        </div>
       </div>
-      <p className="border-t border-gold/30 py-4 text-center text-xs">© {new Date().getFullYear()} Sowji Collections. All rights reserved.</p>
+
+      {/* BOTTOM BAR */}
+      <div className="border-t border-[#b89555]/30">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-5 text-center sm:flex-row sm:text-left">
+          <p className="text-xs text-[#e8dcd5]/80">
+            © {year} Sowji Collections. All rights reserved.
+          </p>
+
+          <p className="font-display text-sm italic text-[#c7a66b]">
+            Tradition • Grace • Elegance
+          </p>
+        </div>
+      </div>
     </footer>
   );
 }
