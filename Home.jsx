@@ -14,9 +14,11 @@ function SectionHeading({ eyebrow, title, description }) {
       <p className="mb-3 text-[10px] uppercase tracking-[4px] text-[#a98550]">
         {eyebrow}
       </p>
+
       <h2 className="font-display text-3xl text-[#541b30] md:text-4xl">
         {title}
       </h2>
+
       {description && (
         <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[#81746c]">
           {description}
@@ -31,6 +33,7 @@ export default function Home() {
   const [lookbookImages, setLookbookImages] = useState([]);
   const [lookbookLoading, setLookbookLoading] = useState(true);
 
+  // Load saree categories.
   useEffect(() => {
     let active = true;
 
@@ -48,7 +51,7 @@ export default function Home() {
           setCategories(sareeCategories);
         }
       } catch {
-        // Keep fallback categories.
+        // Keep existing fallback categories.
       }
     }
 
@@ -99,9 +102,13 @@ export default function Home() {
 
         setLookbookImages(uniquePhotographs.slice(0, 4));
       } catch {
-        if (active) setLookbookImages([]);
+        if (active) {
+          setLookbookImages([]);
+        }
       } finally {
-        if (active) setLookbookLoading(false);
+        if (active) {
+          setLookbookLoading(false);
+        }
       }
     }
 
@@ -153,11 +160,13 @@ export default function Home() {
         }
       `}</style>
 
-      {/* HERO */}
+      {/* HERO SECTION */}
       <section className="bg-[#f0e8dc]">
         <div className="mx-auto grid max-w-[1500px] md:min-h-[570px] md:grid-cols-2">
 
+          {/* LEFT HERO TEXT */}
           <div className="flex flex-col justify-center px-7 py-16 md:px-16 lg:px-24">
+
             <p className="mb-5 text-[10px] uppercase tracking-[4px] text-[#a98550]">
               THE HOUSE OF SOWJI
             </p>
@@ -174,6 +183,7 @@ export default function Home() {
             </p>
 
             <div className="mt-9 flex flex-wrap gap-4">
+
               <Link
                 to="/shop"
                 className="bg-[#681f32] px-8 py-4 text-[10px] uppercase tracking-[2px] text-white transition hover:bg-[#421525]"
@@ -187,23 +197,48 @@ export default function Home() {
               >
                 Explore Collections
               </Link>
+
             </div>
           </div>
 
-          {/* HERO PHOTOGRAPH AREA */}
-          <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden bg-[#e5d9ca] md:min-h-full">
-            <div className="absolute inset-5 border border-[#b89555]/50" />
-            <div className="absolute inset-9 border border-[#b89555]/30" />
+          {/* RIGHT HERO - ACTUAL SOWJI SAREE PHOTOGRAPH */}
+          <div className="relative min-h-[360px] overflow-hidden bg-[#e5d9ca] md:min-h-full">
 
-            <div className="relative px-8 text-center">
-              <span className="text-5xl text-[#b89555]">✧</span>
-              <p className="mt-5 font-display text-3xl italic text-[#541b30]">
-                The Sowji Edit
-              </p>
-              <p className="mt-3 text-[9px] uppercase tracking-[3px] text-[#92785c]">
-                A celebration of Indian sarees
-              </p>
-            </div>
+            {lookbookImages.length > 0 ? (
+              <>
+                <img
+                  src={lookbookImages[0].url}
+                  alt={lookbookImages[0].alt || 'Sowji saree'}
+                  className="absolute inset-0 h-full w-full object-cover object-center"
+                  fetchPriority="high"
+                />
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+
+                <div className="absolute bottom-8 left-8 right-8">
+                  <p className="text-[10px] uppercase tracking-[4px] text-white">
+                    THE HOUSE OF SOWJI
+                  </p>
+
+                  <h2 className="mt-2 font-display text-3xl italic text-white md:text-4xl">
+                    The Sowji Edit
+                  </h2>
+                </div>
+              </>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <p className="font-display text-2xl italic text-[#541b30]">
+                  {lookbookLoading
+                    ? 'Loading saree photograph...'
+                    : 'Saree photography coming soon'}
+                </p>
+              </div>
+            )}
+
+            {/* Decorative gold borders */}
+            <div className="pointer-events-none absolute inset-5 border border-[#d8bd8b]/70" />
+            <div className="pointer-events-none absolute inset-9 border border-white/30" />
+
           </div>
         </div>
       </section>
@@ -211,13 +246,16 @@ export default function Home() {
       {/* CATEGORY NAVIGATION */}
       <section className="border-b border-[#e8dfd3] bg-white">
         <div className="mx-auto max-w-7xl px-5 py-8">
+
           <p className="mb-6 text-center text-[10px] uppercase tracking-[3px] text-[#a98550]">
             Explore by Collection
           </p>
 
           <div className="flex flex-wrap justify-center gap-x-8 gap-y-5">
+
             {categories.map((category, index) => {
               const name = category.name || category.title;
+
               const slug = category.slug ||
                 name?.toLowerCase().replace(/\s+/g, '-');
 
@@ -231,12 +269,14 @@ export default function Home() {
                 </Link>
               );
             })}
+
           </div>
         </div>
       </section>
 
       {/* COLLECTION INTRODUCTION */}
       <section className="px-5 py-16 md:py-24">
+
         <SectionHeading
           eyebrow="THE SOWJI COLLECTION"
           title="A Saree for Every Story"
@@ -244,8 +284,10 @@ export default function Home() {
         />
 
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 md:grid-cols-3 md:gap-6">
+
           {categories.slice(0, 6).map((category, index) => {
             const name = category.name || category.title;
+
             const slug = category.slug ||
               name?.toLowerCase().replace(/\s+/g, '-');
 
@@ -256,21 +298,25 @@ export default function Home() {
                 className="sowji-home-card flex min-h-[150px] flex-col items-center justify-center border border-[#e7daca] bg-white px-4 py-8 text-center md:min-h-[190px]"
               >
                 <span className="text-2xl text-[#b89555]">✧</span>
+
                 <h3 className="mt-4 font-display text-lg text-[#541b30] md:text-xl">
                   {name}
                 </h3>
+
                 <span className="mt-3 text-[9px] uppercase tracking-[2px] text-[#a98550]">
                   Explore Collection →
                 </span>
               </Link>
             );
           })}
+
         </div>
       </section>
 
       {/* NEW ARRIVALS */}
       <section className="bg-[#f0e8dc] px-4 py-16 md:px-8 md:py-24">
         <div className="mx-auto max-w-7xl">
+
           <ProductGrid
             eyebrow="FRESH FROM SOWJI"
             title="New Arrivals"
@@ -278,12 +324,14 @@ export default function Home() {
             viewAllTo="/shop"
             viewAllLabel="Explore All Sarees"
           />
+
         </div>
       </section>
 
       {/* REAL SAREE PHOTOGRAPH GRID */}
       <section className="px-5 py-16 md:py-24">
         <div className="mx-auto max-w-7xl">
+
           <SectionHeading
             eyebrow="THE SOWJI LOOKBOOK"
             title="Discover the Art of Draping"
@@ -291,11 +339,15 @@ export default function Home() {
           />
 
           {lookbookLoading ? (
+
             <div className="py-16 text-center text-sm text-[#81746c]">
               Loading our saree lookbook…
             </div>
+
           ) : lookbookImages.length > 0 ? (
+
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+
               {lookbookImages.map((photo, index) => (
                 <Link
                   key={photo.url}
@@ -310,33 +362,46 @@ export default function Home() {
                   />
 
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-5 pt-12">
+
                     <p className="font-display text-base text-white md:text-lg">
                       {photo.name}
                     </p>
+
                     <p className="mt-1 text-[9px] uppercase tracking-[2px] text-white/80">
                       Explore Sarees →
                     </p>
+
                   </div>
                 </Link>
               ))}
+
             </div>
+
           ) : (
+
             <div className="border border-dashed border-[#d9c8b1] bg-[#f4eee5] px-5 py-16 text-center">
+
               <span className="text-4xl text-[#b89555]">✧</span>
+
               <p className="mt-4 font-display text-xl text-[#541b30]">
                 Your Sowji Lookbook
               </p>
+
               <p className="mt-2 text-sm text-[#81746c]">
                 Verified saree photographs uploaded through Admin will
                 appear here automatically.
               </p>
+
             </div>
+
           )}
+
         </div>
       </section>
 
       {/* FEATURED COLLECTION */}
       <section className="bg-[#421729] px-6 py-20 text-center text-white md:py-28">
+
         <p className="mb-5 text-[10px] uppercase tracking-[4px] text-[#d9bd91]">
           THE SOWJI EXPERIENCE
         </p>
@@ -359,8 +424,9 @@ export default function Home() {
         >
           Shop the Collection →
         </Link>
+
       </section>
 
     </main>
   );
-} 
+}
