@@ -44,7 +44,6 @@ export default function ProductGrid({
           ? data.items
           : [];
 
-        // Preserve the existing verified-product requirement.
         const verified = products.filter(product =>
           product.isVerified === true &&
           Array.isArray(product.images) &&
@@ -72,13 +71,13 @@ export default function ProductGrid({
     };
   }, [query, retry]);
 
-  const categories = useMemo(() =>
-    [...new Set(items.map(p => p.category).filter(Boolean))].sort(),
+  const categories = useMemo(
+    () => [...new Set(items.map(p => p.category).filter(Boolean))].sort(),
     [items]
   );
 
-  const fabrics = useMemo(() =>
-    [...new Set(items.map(p => p.fabric).filter(Boolean))].sort(),
+  const fabrics = useMemo(
+    () => [...new Set(items.map(p => p.fabric).filter(Boolean))].sort(),
     [items]
   );
 
@@ -104,8 +103,8 @@ export default function ProductGrid({
     return [...result].sort();
   }, [items]);
 
-  const occasions = useMemo(() =>
-    [...new Set(items.map(p => p.occasion).filter(Boolean))].sort(),
+  const occasions = useMemo(
+    () => [...new Set(items.map(p => p.occasion).filter(Boolean))].sort(),
     [items]
   );
 
@@ -163,7 +162,6 @@ export default function ProductGrid({
       const price = Number(p.discountPrice || p.price);
 
       if (!Number.isFinite(price) || price <= 0) return true;
-
       if (minPrice !== '' && price < Number(minPrice)) return false;
       if (maxPrice !== '' && price > Number(maxPrice)) return false;
 
@@ -221,45 +219,41 @@ export default function ProductGrid({
   }
 
   const inputClass =
-    'w-full border border-[#dfcfb9] bg-white px-3 py-3 text-xs text-[#541b30] outline-none focus:border-[#b89555]';
+    'w-full border-0 border-b border-[#ded3c5] bg-transparent px-0 py-2.5 text-sm text-[#541b30] outline-none focus:border-[#a48655]';
 
   const labelClass =
-    'mb-2 block text-[10px] font-semibold uppercase tracking-[1.5px] text-[#80684f]';
+    'mb-2 block text-[10px] font-semibold uppercase tracking-[1.6px] text-[#80684f]';
+
+  const selectClass =
+    'w-full border-0 border-b border-[#ded3c5] bg-transparent py-2.5 text-sm text-[#541b30] outline-none focus:border-[#a48655]';
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-12 md:px-8 md:py-16">
+    <section className="mx-auto w-full max-w-[1500px] px-4 py-10 md:px-8 md:py-14">
 
-      {/* COLLECTION HEADING */}
-      <div className="mx-auto mb-9 max-w-2xl text-center">
+      <div className="mb-8">
         {eyebrow && (
-          <p className="mb-2 text-xs uppercase tracking-[4px] text-[#b89555]">
+          <p className="mb-2 text-[10px] uppercase tracking-[4px] text-[#a48655]">
             {eyebrow}
           </p>
         )}
 
-        <h2 className="font-display text-3xl text-[#681f32] md:text-4xl">
+        <h2 className="font-display text-2xl text-[#681f32] md:text-3xl">
           {title}
         </h2>
-
-        <div className="mx-auto my-4 h-px w-16 bg-[#b89555]" />
       </div>
 
       {loading && (
-        <div className="py-16 text-center text-sm text-[#81776e]">
+        <div className="py-20 text-center text-sm text-[#81776e]">
           Preparing the saree collection…
         </div>
       )}
 
       {!loading && error && (
-        <div className="border border-[#ead7d7] bg-white px-5 py-10 text-center">
+        <div className="py-16 text-center">
           <h3 className="font-display text-xl text-[#681f32]">
             Collection temporarily unavailable
           </h3>
-
-          <p className="mt-2 text-sm text-[#81776e]">
-            {error}
-          </p>
-
+          <p className="mt-2 text-sm text-[#81776e]">{error}</p>
           <button
             type="button"
             onClick={() => setRetry(value => value + 1)}
@@ -271,13 +265,10 @@ export default function ProductGrid({
       )}
 
       {!loading && !error && items.length === 0 && (
-        <div className="border border-dashed border-[#dfcfb9] bg-white px-5 py-14 text-center">
-          <span className="text-4xl text-[#b89555]">✦</span>
-
-          <h3 className="mt-4 font-display text-2xl text-[#681f32]">
+        <div className="py-16 text-center">
+          <h3 className="font-display text-2xl text-[#681f32]">
             Our Saree Collection
           </h3>
-
           <p className="mx-auto mt-3 max-w-lg text-sm leading-7 text-[#81776e]">
             Our verified Sowji sarees and original product photographs
             will appear here once they are added to the collection.
@@ -286,41 +277,36 @@ export default function ProductGrid({
       )}
 
       {!loading && !error && items.length > 0 && (
-        <>
-          {/* FILTER PANEL */}
-          <div className="mb-7 border border-[#e8dccd] bg-[#fffdf9] p-4 md:p-6">
+        <div className="grid grid-cols-1 gap-9 lg:grid-cols-[245px_minmax(0,1fr)] lg:gap-12">
 
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[3px] text-[#b89555]">
-                  Find Your Perfect Drape
-                </p>
-                <h3 className="mt-1 font-display text-xl text-[#681f32]">
-                  Explore Sarees
-                </h3>
-              </div>
+          {/* LEFT FILTER SIDEBAR */}
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+
+            <div className="flex items-center justify-between border-b border-[#ded3c5] pb-4">
+              <h3 className="font-display text-xl text-[#681f32]">
+                Filter By
+              </h3>
 
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-xs uppercase tracking-wider text-[#681f32] underline underline-offset-4"
+                className="text-[10px] uppercase tracking-wider text-[#94764d] underline underline-offset-4"
               >
-                Clear All Filters
+                Clear all
               </button>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-6 py-5">
 
               <div>
                 <label className={labelClass} htmlFor="sowji-search">
                   Search Sarees
                 </label>
-
                 <input
                   id="sowji-search"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Search saree, fabric or colour..."
+                  placeholder="Saree, fabric or colour..."
                   className={inputClass}
                 />
               </div>
@@ -329,12 +315,11 @@ export default function ProductGrid({
                 <label className={labelClass} htmlFor="sowji-category">
                   Collection
                 </label>
-
                 <select
                   id="sowji-category"
                   value={category}
                   onChange={e => setCategory(e.target.value)}
-                  className={inputClass}
+                  className={selectClass}
                 >
                   <option value="all">All Collections</option>
                   {categories.map(value => (
@@ -347,12 +332,11 @@ export default function ProductGrid({
                 <label className={labelClass} htmlFor="sowji-fabric">
                   Fabric
                 </label>
-
                 <select
                   id="sowji-fabric"
                   value={fabric}
                   onChange={e => setFabric(e.target.value)}
-                  className={inputClass}
+                  className={selectClass}
                 >
                   <option value="all">All Fabrics</option>
                   {fabrics.map(value => (
@@ -365,12 +349,11 @@ export default function ProductGrid({
                 <label className={labelClass} htmlFor="sowji-colour">
                   Colour
                 </label>
-
                 <select
                   id="sowji-colour"
                   value={colour}
                   onChange={e => setColour(e.target.value)}
-                  className={inputClass}
+                  className={selectClass}
                 >
                   <option value="all">All Colours</option>
                   {colours.map(value => (
@@ -383,12 +366,11 @@ export default function ProductGrid({
                 <label className={labelClass} htmlFor="sowji-occasion">
                   Occasion
                 </label>
-
                 <select
                   id="sowji-occasion"
                   value={occasion}
                   onChange={e => setOccasion(e.target.value)}
-                  className={inputClass}
+                  className={selectClass}
                 >
                   <option value="all">All Occasions</option>
                   {occasions.map(value => (
@@ -398,7 +380,52 @@ export default function ProductGrid({
               </div>
 
               <div>
-                <label className={labelClass} htmlFor="sowji-sort">
+                <p className={labelClass}>Price Range (₹)</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="number"
+                    min="0"
+                    value={minPrice}
+                    onChange={e => setMinPrice(e.target.value)}
+                    placeholder="Min"
+                    aria-label="Minimum price"
+                    className={inputClass}
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    value={maxPrice}
+                    onChange={e => setMaxPrice(e.target.value)}
+                    placeholder="Max"
+                    aria-label="Maximum price"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+            </div>
+          </aside>
+
+          {/* RIGHT PRODUCT AREA */}
+          <div className="min-w-0">
+
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-[#ded3c5] pb-4">
+              <div>
+                <p className="text-sm text-[#681f32]">
+                  <strong>{filtered.length}</strong> Sarees Found
+                </p>
+                <p className="mt-1 text-xs text-[#81776e]">
+                  Showing {filtered.length ? (page - 1) * PAGE_SIZE + 1 : 0}
+                  {' '}–{Math.min(page * PAGE_SIZE, filtered.length)}
+                  {' '}of {filtered.length}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor="sowji-sort"
+                  className="whitespace-nowrap text-[10px] uppercase tracking-wider text-[#80684f]"
+                >
                   Sort By
                 </label>
 
@@ -406,7 +433,7 @@ export default function ProductGrid({
                   id="sowji-sort"
                   value={sort}
                   onChange={e => setSort(e.target.value)}
-                  className={inputClass}
+                  className="max-w-[170px] border-b border-[#ded3c5] bg-transparent py-2 text-xs text-[#541b30] outline-none"
                 >
                   <option value="newest">Newest First</option>
                   <option value="oldest">Oldest First</option>
@@ -415,138 +442,88 @@ export default function ProductGrid({
                   <option value="name">Name: A to Z</option>
                 </select>
               </div>
+            </div>
 
-              <div>
-                <label className={labelClass} htmlFor="sowji-min">
-                  Minimum Price (₹)
-                </label>
-
-                <input
-                  id="sowji-min"
-                  type="number"
-                  min="0"
-                  value={minPrice}
-                  onChange={e => setMinPrice(e.target.value)}
-                  placeholder="Minimum price"
-                  className={inputClass}
-                />
+            {visible.length > 0 ? (
+              <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-2 xl:grid-cols-3">
+                {visible.map(product => (
+                  <ProductCard key={product._id} p={product} />
+                ))}
               </div>
-
-              <div>
-                <label className={labelClass} htmlFor="sowji-max">
-                  Maximum Price (₹)
-                </label>
-
-                <input
-                  id="sowji-max"
-                  type="number"
-                  min="0"
-                  value={maxPrice}
-                  onChange={e => setMaxPrice(e.target.value)}
-                  placeholder="Maximum price"
-                  className={inputClass}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* PRODUCT COUNT */}
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-[#81776e]">
-              <strong className="text-[#681f32]">
-                {filtered.length}
-              </strong>{' '}
-              Sarees Found
-            </p>
-
-            <p className="text-xs text-[#81776e]">
-              Showing {filtered.length ? (page - 1) * PAGE_SIZE + 1 : 0}
-              {' '}–{Math.min(page * PAGE_SIZE, filtered.length)}
-              {' '}of {filtered.length}
-            </p>
-          </div>
-
-          {/* PRODUCTS */}
-          {visible.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
-              {visible.map(product => (
-                <ProductCard key={product._id} p={product} />
-              ))}
-            </div>
-          ) : (
-            <div className="border border-dashed border-[#dfcfb9] bg-white px-5 py-12 text-center">
-              <h3 className="font-display text-xl text-[#681f32]">
-                No Sarees Found
-              </h3>
-
-              <p className="mt-2 text-sm text-[#81776e]">
-                Try changing your search or filters.
-              </p>
-
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="mt-5 bg-[#681f32] px-6 py-3 text-xs uppercase tracking-widest text-white"
-              >
-                Clear Filters
-              </button>
-            </div>
-          )}
-
-          {/* PAGINATION */}
-          {pageCount > 1 && (
-            <nav
-              aria-label="Saree collection pages"
-              className="mt-10 flex flex-wrap items-center justify-center gap-2"
-            >
-              <button
-                type="button"
-                disabled={page === 1}
-                onClick={() => setPage(value => Math.max(1, value - 1))}
-                className="border border-[#d9c8b1] px-4 py-2 text-xs text-[#681f32] disabled:opacity-40"
-              >
-                Previous
-              </button>
-
-              {Array.from({ length: pageCount }, (_, i) => i + 1).map(number => (
+            ) : (
+              <div className="py-20 text-center">
+                <h3 className="font-display text-xl text-[#681f32]">
+                  No Sarees Found
+                </h3>
+                <p className="mt-2 text-sm text-[#81776e]">
+                  Try changing your search or filters.
+                </p>
                 <button
-                  key={number}
                   type="button"
-                  aria-current={page === number ? 'page' : undefined}
-                  onClick={() => setPage(number)}
-                  className={
-                    page === number
-                      ? 'bg-[#681f32] px-4 py-2 text-xs text-white'
-                      : 'border border-[#d9c8b1] px-4 py-2 text-xs text-[#681f32]'
-                  }
+                  onClick={clearFilters}
+                  className="mt-5 text-xs uppercase tracking-widest text-[#681f32] underline underline-offset-4"
                 >
-                  {number}
+                  Clear Filters
                 </button>
-              ))}
+              </div>
+            )}
 
-              <button
-                type="button"
-                disabled={page === pageCount}
-                onClick={() => setPage(value => Math.min(pageCount, value + 1))}
-                className="border border-[#d9c8b1] px-4 py-2 text-xs text-[#681f32] disabled:opacity-40"
+            {pageCount > 1 && (
+              <nav
+                aria-label="Saree collection pages"
+                className="mt-12 flex flex-wrap items-center justify-center gap-2"
               >
-                Next
-              </button>
-            </nav>
-          )}
+                <button
+                  type="button"
+                  disabled={page === 1}
+                  onClick={() => setPage(value => Math.max(1, value - 1))}
+                  className="border border-[#d9c8b1] px-4 py-2 text-xs text-[#681f32] disabled:opacity-40"
+                >
+                  Previous
+                </button>
 
-          {viewAllTo && (
-            <div className="mt-10 text-center">
-              <Link
-                to={viewAllTo}
-                className="inline-flex border border-[#b89555] px-8 py-3 text-xs uppercase tracking-[2px] text-[#681f32] transition hover:bg-[#681f32] hover:text-white"
-              >
-                {viewAllLabel || 'View All Sarees'}
-              </Link>
-            </div>
-          )}
-        </>
+                {Array.from({ length: pageCount }, (_, i) => i + 1).map(number => (
+                  <button
+                    key={number}
+                    type="button"
+                    aria-current={page === number ? 'page' : undefined}
+                    onClick={() => setPage(number)}
+                    className={
+                      page === number
+                        ? 'bg-[#681f32] px-4 py-2 text-xs text-white'
+                        : 'border border-[#d9c8b1] px-4 py-2 text-xs text-[#681f32]'
+                    }
+                  >
+                    {number}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  disabled={page === pageCount}
+                  onClick={() => setPage(value => Math.min(pageCount, value + 1))}
+                  className="border border-[#d9c8b1] px-4 py-2 text-xs text-[#681f32] disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </nav>
+            )}
+
+            {viewAllTo && (
+              <div className="mt-10 text-center">
+                <Link
+                  to={viewAllTo}
+                  className="text-xs uppercase tracking-widest text-[#681f32] underline underline-offset-4"
+                >
+                  {viewAllLabel || 'View All Sarees'}
+                </Link>
+              </div>
+            )}
+
+          </div>
+        </div>
       )}
+
     </section>
   );
 }
