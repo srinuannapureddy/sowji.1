@@ -201,6 +201,78 @@ export default function Admin() {
     }));
   }
 
+  async function uploadProductImages(event) {
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+
+    if (!files.length) return;
+
+    const validFiles = files.filter(file =>
+      file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024
+    );
+
+    if (validFiles.length !== files.length) {
+      setError('Choose image files smaller than 10 MB each.');
+    }
+
+    if (!validFiles.length) return;
+
+    setBusy(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const uploadedUrls = [];
+
+      for (const file of validFiles) {
+        const signatureData = await api('/uploads/signature', {
+          method: 'POST',
+          headers: authHeaders()
+        });
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('api_key', signatureData.apiKey);
+        formData.append('timestamp', signatureData.timestamp);
+        formData.append('folder', signatureData.folder);
+        formData.append('signature', signatureData.signature);
+
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
+          {
+            method: 'POST',
+            body: formData
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.secure_url) {
+          throw new Error(result.error?.message || 'Image upload failed.');
+        }
+
+        uploadedUrls.push(result.secure_url);
+      }
+
+      setProductForm(current => {
+        const existing = current.imageUrls.filter(Boolean);
+        const next = [...existing, ...uploadedUrls];
+
+        return {
+          ...current,
+          imageUrls: next,
+          mainImage: existing.length ? current.mainImage : 0
+        };
+      });
+
+      setMessage(`${uploadedUrls.length} photograph(s) uploaded successfully.`);
+    } catch (err) {
+      setError(err.message || 'Could not upload photographs.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function addImageField() {
     setProductForm(current => ({
       ...current,
