@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { api } from './client.js';
 import { useStore } from './store.jsx';
 
@@ -8,9 +8,49 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const [msgs, setMsgs] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const nav = useNavigate();
+  const location = useLocation();
   const { cart = [], wishlist = [] } = useStore();
+
+  // Check whether the currently signed-in account is an administrator
+  useEffect(() => {
+    let active = true;
+
+    const checkAdmin = async () => {
+      const token = localStorage.getItem('sowji_customer_token');
+
+      if (!token) {
+        if (active) setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const data = await api('/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (active) {
+          setIsAdmin(data.user?.role === 'admin');
+        }
+      } catch {
+        if (active) setIsAdmin(false);
+      }
+    };
+
+    checkAdmin();
+
+    const handleStorage = () => checkAdmin();
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      active = false;
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
     api('/announcements')
@@ -46,20 +86,17 @@ export default function Header() {
     }`;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-ivory shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-ivory">
 
-      {/* Announcement bar */}
       {msgs.length > 0 && (
         <div className="bg-wine px-3 py-2 text-center text-xs tracking-widest text-white">
           {msgs.join('  ✦  ')}
         </div>
       )}
 
-      {/* Main header */}
       <div className="border-b border-[#e9dfd2]">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-8">
 
-          {/* Mobile menu button */}
           <button
             type="button"
             className="flex h-10 w-10 items-center justify-center text-2xl text-wine md:hidden"
@@ -70,7 +107,6 @@ export default function Header() {
             {open ? '×' : '☰'}
           </button>
 
-          {/* Logo */}
           <Link
             to="/"
             className="flex min-w-0 flex-col items-center text-center"
@@ -84,17 +120,37 @@ export default function Header() {
             </span>
           </Link>
 
-          {/* Desktop navigation */}
           <nav className="hidden items-center gap-6 lg:flex xl:gap-9">
             {links.map(([to, label]) => (
-              <NavLink key={to} to={to} end={to === '/'} className={navClass}>
+              <NavLink
+                key={to}
+                to={to}
+                end={to === '/'}
+                className={navClass}
+              >
                 {label}
               </NavLink>
             ))}
+
+            {isAdmin && (
+              <NavLink to="/admin" className={navClass}>
+                ADMIN
+              </NavLink>
+            )}
           </nav>
 
-          {/* Right icons */}
           <div className="flex shrink-0 items-center gap-3 text-wine sm:gap-5">
+
+            {isAdmin && (
+              <Link
+                to="/admin"
+                aria-label="Admin Dashboard"
+                title="Admin Dashboard"
+                className="hidden text-xs font-bold tracking-widest text-gold transition hover:text-wine sm:inline"
+              >
+                ADMIN
+              </Link>
+            )}
 
             <Link
               to="/account"
@@ -133,7 +189,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Desktop search */}
       <div className="hidden border-b border-[#eee5d9] py-3 md:block">
         <form
           onSubmit={submit}
@@ -156,7 +211,6 @@ export default function Header() {
         </form>
       </div>
 
-      {/* Mobile navigation */}
       {open && (
         <div className="border-b border-[#e9dfd2] bg-white px-5 py-5 shadow-lg md:hidden">
 
@@ -192,6 +246,16 @@ export default function Header() {
                 {label}
               </NavLink>
             ))}
+
+            {isAdmin && (
+              <NavLink
+                to="/admin"
+                onClick={() => setOpen(false)}
+                className="border-b border-[#eee5d9] py-3 text-xs font-bold uppercase tracking-[2px] text-gold"
+              >
+                Admin Dashboard
+              </NavLink>
+            )}
           </nav>
 
           <div className="mt-4 flex justify-around text-xs text-wine">
