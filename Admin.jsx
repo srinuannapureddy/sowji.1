@@ -7,13 +7,17 @@ const TOKEN = 'sowji_customer_token';
 const ADMIN_EMAIL = 'akshathacgowda.75@gmail.com';
 
 const STATUSES = [
-  'Placed',
-  'Confirmed',
-  'Processing',
-  'Shipped',
-  'Delivered',
-  'Cancelled',
-  'Returned'
+  'Placed', 'Confirmed', 'Processing',
+  'Shipped', 'Delivered', 'Cancelled', 'Returned'
+];
+
+const CATEGORIES = [
+  'Kanchipuram Silk Sarees',
+  'Banarasi Sarees',
+  'Cotton Sarees',
+  'Organza Sarees',
+  'Designer Sarees',
+  'Party Wear Sarees'
 ];
 
 const emptyProduct = {
@@ -24,22 +28,47 @@ const emptyProduct = {
   discountPrice: '',
   stock: '',
   fabric: '',
+  weaveType: '',
+  blousePiece: '',
+  blouseIncluded: false,
   color: '',
+  occasion: '',
+  careInstructions: '',
   description: '',
-  image: ''
+  imageUrls: [''],
+  mainImage: 0,
+  isBestSeller: false,
+  isNewArrival: false
 };
 
 function Panel({ title, children, action }) {
   return (
     <section className="border border-[#e8dfd2] bg-white p-5 shadow-sm md:p-7">
       <div className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="font-display text-2xl text-[#541b30]">
-          {title}
-        </h2>
+        <h2 className="font-display text-2xl text-[#541b30]">{title}</h2>
         {action}
       </div>
       {children}
     </section>
+  );
+}
+
+function Field({ label, name, value, onChange, type = 'text', required = false, min, step, placeholder }) {
+  return (
+    <label className="block text-xs text-[#541b30]">
+      {label}
+      <input
+        name={name}
+        type={type}
+        value={value ?? ''}
+        onChange={onChange}
+        required={required}
+        min={min}
+        step={step}
+        placeholder={placeholder || ''}
+        className="mt-1 w-full border border-[#dfd2c2] bg-white p-3 text-sm"
+      />
+    </label>
   );
 }
 
@@ -57,6 +86,7 @@ export default function Admin() {
   const [productForm, setProductForm] = useState(emptyProduct);
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState('');
 
   const token = () => localStorage.getItem(TOKEN);
 
@@ -69,12 +99,8 @@ export default function Admin() {
 
     try {
       const [productData, orderData] = await Promise.all([
-        api('/products/admin/all', {
-          headers: authHeaders()
-        }),
-        api('/orders', {
-          headers: authHeaders()
-        })
+        api('/products/admin/all', { headers: authHeaders() }),
+        api('/orders', { headers: authHeaders() })
       ]);
 
       setProducts(productData.items || []);
@@ -97,9 +123,7 @@ export default function Admin() {
 
       try {
         const result = await api('/auth/me', {
-          headers: {
-            Authorization: `Bearer ${savedToken}`
-          }
+          headers: { Authorization: `Bearer ${savedToken}` }
         });
 
         if (active) setUser(result.user);
@@ -118,9 +142,7 @@ export default function Admin() {
   }, []);
 
   useEffect(() => {
-    if (user?.role === 'admin') {
-      loadDashboard();
-    }
+    if (user?.role === 'admin') loadDashboard();
   }, [user]);
 
   async function activateAdmin(e) {
@@ -162,37 +184,140 @@ export default function Admin() {
   }
 
   function updateProductField(e) {
+    const { name, value, type, checked } = e.target;
+
     setProductForm(current => ({
       ...current,
-      [e.target.name]: e.target.value
+      [name]: type === 'checkbox' ? checked : value
     }));
+  }
+
+  function updateImage(index, value) {
+    setProductForm(current => ({
+      ...current,
+      imageUrls: current.imageUrls.map((url, i) =>
+        i === index ? value : url
+      )
+    }));
+  }
+
+  function addImageField() {
+    setProductForm(current => ({
+      ...current,
+      imageUrls: [...current.imageUrls, '']
+    }));
+  }
+
+  function removeImageField(index) {
+    setProductForm(current => {
+      const next = current.imageUrls.filter((_, i) => i !== index);
+
+      return {
+        ...current,
+        imageUrls: next.length ? next : [''],
+        mainImage: Math.min(current.mainImage, Math.max(0, next.length - 1))
+      };
+    });
   }
 
   function startAddProduct() {
     setEditingId(null);
-    setProductForm(emptyProduct);
+    setProductForm({
+      ...emptyProduct,
+      imageUrls: ['']
+    });
     setShowForm(true);
     setError('');
     setMessage('');
   }
 
   function startEditProduct(product) {
+    const images = (product.images || []).map(image => image.url).filter(Boolean);
+
+    const mainIndex = Math.max(
+      0,
+      (product.images || []).findIndex(image => image.isMain)
+    );
+
     setEditingId(product._id);
+
     setProductForm({
       name: product.name || '',
-      category: product.category || '',
+      category: product.category || CATEGORIES[0],
       sku: product.sku || '',
       price: product.price ?? '',
       discountPrice: product.discountPrice ?? '',
       stock: product.stock ?? '',
       fabric: product.fabric || '',
+      weaveType: product.weaveType || '',
+      blousePiece: product.blousePiece || '',
+      blouseIncluded: Boolean(product.blouseIncluded),
       color: product.color || '',
+      occasion: product.occasion || '',
+      careInstructions: product.careInstructions || '',
       description: product.description || '',
-      image: product.images?.[0]?.url || ''
+      imageUrls: images.length ? images : [''],
+      mainImage: Math.min(mainIndex, Math.max(0, images.length - 1)),
+      isBestSeller: Boolean(product.isBestSeller),
+      isNewArrival: Boolean(product.isNewArrival)
     });
+
     setShowForm(true);
     setError('');
     setMessage('');
+  }
+
+  function validateProduct() {
+    const name = productForm.name.trim();
+    const sku = productForm.sku.trim();
+
+    if (!name || !sku || !productForm.category.trim()) {
+      throw new Error('Please enter the product name, category and unique SKU.');
+    }
+
+    if (productForm.price === '' || !Number.isFinite(Number(productForm.price)) || Number(productForm.price) <= 0) {
+      throw new Error('Please enter a valid product price greater than zero.');
+    }
+
+    if (
+      productForm.discountPrice !== '' &&
+      (
+        !Number.isFinite(Number(productForm.discountPrice)) ||
+        Number(productForm.discountPrice) < 0 ||
+        Number(productForm.discountPrice) >= Number(productForm.price)
+      )
+    ) {
+      throw new Error('Discount price must be less than the regular price.');
+    }
+
+    if (
+      productForm.stock === '' ||
+      !Number.isInteger(Number(productForm.stock)) ||
+      Number(productForm.stock) < 0
+    ) {
+      throw new Error('Enter a valid stock quantity (zero or more).');
+    }
+
+    const images = productForm.imageUrls
+      .map(url => url.trim())
+      .filter(Boolean);
+
+    for (const url of images) {
+      try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== 'https:') {
+          throw new Error();
+        }
+      } catch {
+        throw new Error('Every photograph must use a valid HTTPS image URL.');
+      }
+    }
+
+    if (images.length && productForm.mainImage >= images.length) {
+      throw new Error('Please select a main product photograph.');
+    }
+
+    return images;
   }
 
   async function saveProduct(e) {
@@ -202,6 +327,8 @@ export default function Admin() {
     setMessage('');
 
     try {
+      const images = validateProduct();
+
       const slug = productForm.name
         .trim()
         .toLowerCase()
@@ -213,22 +340,26 @@ export default function Admin() {
         slug,
         category: productForm.category.trim(),
         sku: productForm.sku.trim(),
-        price: productForm.price === '' ? null : Number(productForm.price),
+        price: Number(productForm.price),
         discountPrice: productForm.discountPrice === ''
           ? null
           : Number(productForm.discountPrice),
-        stock: productForm.stock === '' ? null : Number(productForm.stock),
+        stock: Number(productForm.stock),
         fabric: productForm.fabric.trim(),
+        weaveType: productForm.weaveType.trim(),
+        blousePiece: productForm.blousePiece.trim(),
+        blouseIncluded: Boolean(productForm.blouseIncluded),
         color: productForm.color.trim(),
+        occasion: productForm.occasion.trim(),
+        careInstructions: productForm.careInstructions.trim(),
         description: productForm.description.trim(),
-        images: productForm.image.trim()
-          ? [{ url: productForm.image.trim(), isMain: true }]
-          : []
+        images: images.map((url, index) => ({
+          url,
+          isMain: index === productForm.mainImage
+        })),
+        isBestSeller: Boolean(productForm.isBestSeller),
+        isNewArrival: Boolean(productForm.isNewArrival)
       };
-
-      if (!payload.name || !payload.category || !payload.sku) {
-        throw new Error('Please enter the product name, category and SKU.');
-      }
 
       if (editingId) {
         await api(`/products/${editingId}`, {
@@ -236,6 +367,7 @@ export default function Admin() {
           headers: authHeaders(),
           body: payload
         });
+
         setMessage('Product details updated.');
       } else {
         await api('/products', {
@@ -243,6 +375,7 @@ export default function Admin() {
           headers: authHeaders(),
           body: payload
         });
+
         setMessage('Product saved as an unpublished draft.');
       }
 
@@ -263,7 +396,9 @@ export default function Admin() {
       return;
     }
 
-    if (!window.confirm(`Verify and publish "${product.name}"?`)) return;
+    if (!window.confirm(`Verify and publish "${product.name}"? Only do this after checking its authenticity and details.`)) {
+      return;
+    }
 
     setBusy(true);
     setError('');
@@ -361,6 +496,16 @@ export default function Admin() {
     .filter(order => !['Cancelled', 'Returned'].includes(order.status))
     .reduce((sum, order) => sum + Number(order.total || 0), 0);
 
+  const filteredProducts = products.filter(product => {
+    const query = search.toLowerCase();
+
+    return (
+      (product.name || '').toLowerCase().includes(query) ||
+      (product.sku || '').toLowerCase().includes(query) ||
+      (product.category || '').toLowerCase().includes(query)
+    );
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#faf7f1] p-12 text-center">
@@ -423,16 +568,16 @@ export default function Admin() {
           <form onSubmit={activateAdmin} className="mt-6 space-y-4">
             <label className="block text-xs uppercase tracking-wider text-[#541b30]">
               One-time setup key
+              <input
+                type="password"
+                value={bootstrapKey}
+                onChange={e => setBootstrapKey(e.target.value)}
+                required
+                autoComplete="off"
+                placeholder="Enter your private setup key"
+                className="mt-2 w-full border border-[#e8dfd2] p-3"
+              />
             </label>
-            <input
-              type="password"
-              value={bootstrapKey}
-              onChange={e => setBootstrapKey(e.target.value)}
-              required
-              autoComplete="off"
-              placeholder="Enter your private setup key"
-              className="w-full border border-[#e8dfd2] p-3"
-            />
 
             <button
               disabled={busy || user.email?.toLowerCase() !== ADMIN_EMAIL}
@@ -484,6 +629,7 @@ export default function Admin() {
                 setTab(key);
                 setShowForm(false);
                 setError('');
+                setMessage('');
               }}
               className={`px-5 py-3 text-xs uppercase tracking-wider ${
                 tab === key
@@ -497,6 +643,7 @@ export default function Admin() {
 
           <button
             onClick={loadDashboard}
+            disabled={busy}
             className="ml-auto border border-[#b89555] px-4 py-3 text-xs text-[#541b30]"
           >
             ↻ Refresh
@@ -675,171 +822,307 @@ export default function Admin() {
         )}
 
         {tab === 'products' && (
-          <>
-            <Panel
-              title="Saree collection"
-              action={
-                <button
-                  onClick={startAddProduct}
-                  className="bg-[#541b30] px-4 py-3 text-xs uppercase tracking-wider text-white"
-                >
-                  + Add saree
-                </button>
-              }
-            >
-              {showForm && (
-                <form onSubmit={saveProduct} className="mb-7 border border-[#dfd2c2] bg-[#faf7f1] p-5">
-                  <h3 className="mb-5 font-display text-2xl text-[#541b30]">
-                    {editingId ? 'Edit saree details' : 'Add a new saree'}
-                  </h3>
+          <Panel
+            title="Saree collection"
+            action={
+              <button
+                onClick={startAddProduct}
+                className="bg-[#541b30] px-4 py-3 text-xs uppercase tracking-wider text-white"
+              >
+                + Add saree
+              </button>
+            }
+          >
+            {showForm && (
+              <form onSubmit={saveProduct} className="mb-7 border border-[#dfd2c2] bg-[#faf7f1] p-5">
+                <h3 className="mb-5 font-display text-2xl text-[#541b30]">
+                  {editingId ? 'Edit saree details' : 'Add a new saree'}
+                </h3>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {[
-                      ['name', 'Product name'],
-                      ['sku', 'Unique SKU'],
-                      ['category', 'Category'],
-                      ['fabric', 'Fabric'],
-                      ['color', 'Colour'],
-                      ['price', 'Price (₹)'],
-                      ['discountPrice', 'Discount price (₹)'],
-                      ['stock', 'Stock quantity'],
-                      ['image', 'Authentic image URL']
-                    ].map(([name, label]) => (
-                      <label key={name} className="block text-xs text-[#541b30]">
-                        {label}
-                        <input
-                          name={name}
-                          value={productForm[name]}
-                          onChange={updateProductField}
-                          required={['name', 'sku', 'category'].includes(name)}
-                          type={['price', 'discountPrice', 'stock'].includes(name) ? 'number' : 'text'}
-                          min={['price', 'discountPrice', 'stock'].includes(name) ? '0' : undefined}
-                          step={['price', 'discountPrice'].includes(name) ? '0.01' : undefined}
-                          className="mt-1 w-full border border-[#dfd2c2] bg-white p-3 text-sm"
-                        />
-                      </label>
-                    ))}
-                  </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field label="Product name *" name="name" value={productForm.name} onChange={updateProductField} required />
+                  <Field label="Unique SKU *" name="sku" value={productForm.sku} onChange={updateProductField} required />
 
-                  <label className="mt-4 block text-xs text-[#541b30]">
-                    Product description
-                    <textarea
-                      name="description"
-                      value={productForm.description}
+                  <label className="block text-xs text-[#541b30]">
+                    Category *
+                    <select
+                      name="category"
+                      value={productForm.category}
                       onChange={updateProductField}
-                      rows="4"
+                      required
                       className="mt-1 w-full border border-[#dfd2c2] bg-white p-3 text-sm"
-                    />
+                    >
+                      {CATEGORIES.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
                   </label>
 
-                  <p className="mt-3 text-xs text-[#81746c]">
-                    New products are saved as unpublished drafts. Only add genuine, authorised Sowji product photographs and verified product details.
-                  </p>
+                  <Field label="Fabric" name="fabric" value={productForm.fabric} onChange={updateProductField} />
+                  <Field label="Weave type" name="weaveType" value={productForm.weaveType} onChange={updateProductField} />
+                  <Field label="Colour" name="color" value={productForm.color} onChange={updateProductField} />
+                  <Field label="Blouse piece details" name="blousePiece" value={productForm.blousePiece} onChange={updateProductField} />
+                  <Field label="Occasion" name="occasion" value={productForm.occasion} onChange={updateProductField} />
 
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    <button
-                      disabled={busy}
-                      className="bg-[#541b30] px-6 py-3 text-xs uppercase tracking-wider text-white"
-                    >
-                      {busy ? 'Saving...' : 'Save product'}
-                    </button>
+                  <Field label="Price (₹) *" name="price" value={productForm.price} onChange={updateProductField} type="number" min="0.01" step="0.01" required />
+                  <Field label="Discount price (₹)" name="discountPrice" value={productForm.discountPrice} onChange={updateProductField} type="number" min="0" step="0.01" />
+                  <Field label="Stock quantity *" name="stock" value={productForm.stock} onChange={updateProductField} type="number" min="0" step="1" required />
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <label className="flex items-center gap-3 text-sm text-[#541b30]">
+                    <input
+                      type="checkbox"
+                      name="blouseIncluded"
+                      checked={productForm.blouseIncluded}
+                      onChange={updateProductField}
+                    />
+                    Blouse piece included
+                  </label>
+                  <label className="flex items-center gap-3 text-sm text-[#541b30]">
+                    <input
+                      type="checkbox"
+                      name="isBestSeller"
+                      checked={productForm.isBestSeller}
+                      onChange={updateProductField}
+                    />
+                    Mark as bestseller
+                  </label>
+                  <label className="flex items-center gap-3 text-sm text-[#541b30]">
+                    <input
+                      type="checkbox"
+                      name="isNewArrival"
+                      checked={productForm.isNewArrival}
+                      onChange={updateProductField}
+                    />
+                    Mark as new arrival
+                  </label>
+                </div>
+
+                <label className="mt-5 block text-xs text-[#541b30]">
+                  Care instructions
+                  <textarea
+                    name="careInstructions"
+                    value={productForm.careInstructions}
+                    onChange={updateProductField}
+                    rows="2"
+                    placeholder="Example: Dry clean only"
+                    className="mt-1 w-full border border-[#dfd2c2] bg-white p-3 text-sm"
+                  />
+                </label>
+
+                <label className="mt-4 block text-xs text-[#541b30]">
+                  Product description
+                  <textarea
+                    name="description"
+                    value={productForm.description}
+                    onChange={updateProductField}
+                    rows="4"
+                    className="mt-1 w-full border border-[#dfd2c2] bg-white p-3 text-sm"
+                  />
+                </label>
+
+                <div className="mt-6 border-t border-[#dfd2c2] pt-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h4 className="font-display text-xl text-[#541b30]">Product photographs</h4>
+                      <p className="mt-1 text-xs text-[#81746c]">
+                        Add HTTPS image links to genuine, authorised Sowji saree photographs.
+                      </p>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditingId(null);
-                      }}
-                      className="border border-[#dfd2c2] px-6 py-3 text-xs uppercase tracking-wider"
+                      onClick={addImageField}
+                      className="border border-[#b89555] px-4 py-2 text-xs text-[#541b30]"
                     >
-                      Cancel
+                      + Add image
                     </button>
                   </div>
-                </form>
-              )}
 
-              {products.length === 0 ? (
-                <p className="text-sm">No products are in the database yet. You can add your first saree above.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[750px] text-left text-sm">
-                    <thead className="border-b text-xs uppercase tracking-wider text-[#81746c]">
-                      <tr>
-                        <th className="p-3">Saree</th>
-                        <th className="p-3">SKU</th>
-                        <th className="p-3">Price</th>
-                        <th className="p-3">Stock</th>
-                        <th className="p-3">Visibility</th>
-                        <th className="p-3">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {products.map(product => (
-                        <tr key={product._id} className="border-b border-[#eee5d9]">
-                          <td className="p-3">
-                            <div className="flex items-center gap-3">
-                              {product.images?.[0]?.url && (
-                                <img
-                                  src={product.images[0].url}
-                                  alt={product.name}
-                                  className="h-14 w-12 object-cover"
-                                />
-                              )}
-                              <div>
-                                <p className="font-medium text-[#541b30]">{product.name}</p>
-                                <p className="text-xs text-[#81746c]">{product.category}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-3">{product.sku}</td>
-                          <td className="p-3">{product.price == null ? 'Not set' : money(product.price)}</td>
-                          <td className="p-3">{product.stock ?? 'Not set'}</td>
-                          <td className="p-3">
-                            {product.isPublished && product.isVerified
-                              ? 'Published'
-                              : 'Draft'}
-                          </td>
-                          <td className="p-3">
-                            <div className="flex flex-wrap gap-2">
+                  <div className="mt-4 space-y-4">
+                    {productForm.imageUrls.map((url, index) => (
+                      <div key={index} className="border border-[#e8dfd2] bg-white p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <label className="text-xs text-[#541b30]">
+                            Photograph {index + 1}
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <label className="flex items-center gap-1 text-xs text-[#541b30]">
+                              <input
+                                type="radio"
+                                name="mainImage"
+                                checked={productForm.mainImage === index}
+                                onChange={() => setProductForm(current => ({
+                                  ...current,
+                                  mainImage: index
+                                }))}
+                              />
+                              Main image
+                            </label>
+                            {productForm.imageUrls.length > 1 && (
                               <button
-                                onClick={() => startEditProduct(product)}
-                                className="text-xs text-[#8b6534] underline"
-                              >
-                                Edit
-                              </button>
-                              {product.isPublished && product.isVerified ? (
-                                <button
-                                  disabled={busy}
-                                  onClick={() => unpublishProduct(product)}
-                                  className="text-xs text-[#541b30] underline"
-                                >
-                                  Unpublish
-                                </button>
-                              ) : (
-                                <button
-                                  disabled={busy}
-                                  onClick={() => publishProduct(product)}
-                                  className="text-xs text-green-800 underline"
-                                >
-                                  Verify & publish
-                                </button>
-                              )}
-                              <button
-                                disabled={busy}
-                                onClick={() => deleteProduct(product)}
+                                type="button"
+                                onClick={() => removeImageField(index)}
                                 className="text-xs text-red-700 underline"
                               >
-                                Delete
+                                Remove
                               </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                            )}
+                          </div>
+                        </div>
+
+                        <input
+                          type="url"
+                          value={url}
+                          onChange={e => updateImage(index, e.target.value)}
+                          placeholder="https://..."
+                          className="mt-2 w-full border border-[#dfd2c2] p-3 text-sm"
+                        />
+
+                        {url.trim().startsWith('https://') && (
+                          <div className="mt-3">
+                            <img
+                              src={url.trim()}
+                              alt={`Saree photograph ${index + 1} preview`}
+                              className="h-36 w-28 border border-[#e8dfd2] object-cover"
+                              onError={e => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                              onLoad={e => {
+                                e.currentTarget.style.display = 'block';
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              )}
-            </Panel>
-          </>
+
+                <p className="mt-4 text-xs text-[#81746c]">
+                  New products are saved as unpublished drafts. Check every image and product detail for authenticity before verifying and publishing. This form stores image URLs; it does not upload image files.
+                </p>
+
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button
+                    disabled={busy}
+                    className="bg-[#541b30] px-6 py-3 text-xs uppercase tracking-wider text-white disabled:opacity-50"
+                  >
+                    {busy ? 'Saving...' : 'Save product'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForm(false);
+                      setEditingId(null);
+                      setProductForm(emptyProduct);
+                    }}
+                    className="border border-[#dfd2c2] px-6 py-3 text-xs uppercase tracking-wider"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <div className="mb-5">
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search sarees by name, SKU or category..."
+                className="w-full border border-[#dfd2c2] bg-white p-3 text-sm"
+              />
+            </div>
+
+            {filteredProducts.length === 0 ? (
+              <p className="text-sm">
+                {products.length === 0
+                  ? 'No products are in the database yet. You can add your first saree above.'
+                  : 'No matching sarees found.'}
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[800px] text-left text-sm">
+                  <thead className="border-b text-xs uppercase tracking-wider text-[#81746c]">
+                    <tr>
+                      <th className="p-3">Saree</th>
+                      <th className="p-3">SKU</th>
+                      <th className="p-3">Price</th>
+                      <th className="p-3">Stock</th>
+                      <th className="p-3">Visibility</th>
+                      <th className="p-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.map(product => (
+                      <tr key={product._id} className="border-b border-[#eee5d9]">
+                        <td className="p-3">
+                          <div className="flex items-center gap-3">
+                            {product.images?.[0]?.url && (
+                              <img
+                                src={product.images.find(image => image.isMain)?.url || product.images[0].url}
+                                alt={product.name}
+                                className="h-14 w-12 object-cover"
+                              />
+                            )}
+                            <div>
+                              <p className="font-medium text-[#541b30]">{product.name}</p>
+                              <p className="text-xs text-[#81746c]">{product.category}</p>
+                              <p className="text-xs text-[#81746c]">
+                                {(product.images || []).length} image(s)
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-3">{product.sku}</td>
+                        <td className="p-3">
+                          {product.price == null ? 'Not set' : money(product.price)}
+                        </td>
+                        <td className="p-3">{product.stock ?? 'Not set'}</td>
+                        <td className="p-3">
+                          {product.isPublished && product.isVerified ? 'Published' : 'Draft'}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() => startEditProduct(product)}
+                              className="text-xs text-[#8b6534] underline"
+                            >
+                              Edit
+                            </button>
+                            {product.isPublished && product.isVerified ? (
+                              <button
+                                disabled={busy}
+                                onClick={() => unpublishProduct(product)}
+                                className="text-xs text-[#541b30] underline"
+                              >
+                                Unpublish
+                              </button>
+                            ) : (
+                              <button
+                                disabled={busy}
+                                onClick={() => publishProduct(product)}
+                                className="text-xs text-green-800 underline"
+                              >
+                                Verify & publish
+                              </button>
+                            )}
+                            <button
+                              disabled={busy}
+                              onClick={() => deleteProduct(product)}
+                              className="text-xs text-red-700 underline"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Panel>
         )}
 
         <p className="mt-8 text-center text-xs text-[#81746c]">
