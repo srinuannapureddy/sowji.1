@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { api, money } from './client.js';
 
 const TOKEN = 'sowji_customer_token';
-const ADMIN_EMAIL = 'akshathacgowda.75@gmail.com';
+const ADMIN_EMAIL = 'akshathacgowda75@gmail.com';
 
 const STATUSES = [
   'Placed', 'Confirmed', 'Processing',
