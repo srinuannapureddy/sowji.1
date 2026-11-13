@@ -3,8 +3,10 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useState
+  useState,
+  useRef
 } from 'react';
+import { api } from './client.js';
 
 const Ctx = createContext(null);
 
@@ -25,7 +27,6 @@ const save = (key, value) => {
   }
 };
 
-// Each product and selected colour gets its own cart identity.
 const getCartKey = (item) => {
   if (item.cartKey) return item.cartKey;
 
@@ -34,6 +35,10 @@ const getCartKey = (item) => {
     .toLowerCase();
 
   return `${item._id}::${color}`;
+};
+
+const getToken = () => {
+  return localStorage.getItem('sowji_customer_token');
 };
 
 export function StoreProvider({ children }) {
@@ -52,9 +57,165 @@ export function StoreProvider({ children }) {
     load('sowji_compare')
   );
 
+  const [cloudReady, setCloudReady] = useState(false);
+  const [syncStatus, setSyncStatus] = useState('idle');
+
+  const tokenRef = useRef(getToken());
+  const readyRef = useRef(false);
+  const timerRef = useRef(null);
+  const loadingRef = useRef(false);
+
+  // Keep a local backup for guest shopping.
   useEffect(() => save('sowji_cart', cart), [cart]);
   useEffect(() => save('sowji_wish', wishlist), [wishlist]);
   useEffect(() => save('sowji_compare', compare), [compare]);
+
+  // Load account shopping data after login.
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadAccountData = async () => {
+      const token = getToken();
+
+      tokenRef.current = token;
+      readyRef.current = false;
+      setCloudReady(false);
+
+      if (!token) {
+        setSyncStatus('idle');
+        return;
+      }
+
+      loadingRef.current = true;
+      setSyncStatus('loading');
+
+      try {
+        const response = await api('/customer-data', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (cancelled) return;
+
+        const data = response.data || {};
+
+        if (response.initialized) {
+          setCart(
+            (data.cart || []).map(item => ({
+              ...item,
+              cartKey: getCartKey(item)
+            }))
+          );
+
+          setWishlist(data.wishlist || []);
+          setCompare(data.compare || []);
+        } else {
+          // First account login: move guest data into the account.
+          setCart(current =>
+            current.map(item => ({
+              ...item,
+              cartKey: getCartKey(item)
+            }))
+          );
+        }
+
+        readyRef.current = true;
+        setCloudReady(true);
+        setSyncStatus('synced');
+      } catch (error) {
+        console.error('Account shopping data load failed:', error);
+        if (!cancelled) {
+          setSyncStatus('error');
+          setCloudReady(false);
+        }
+      } finally {
+        loadingRef.current = false;
+      }
+    };
+
+    loadAccountData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken()]);
+
+  // Save changes to the signed-in account.
+  useEffect(() => {
+    const token = getToken();
+
+    if (
+      !token ||
+      !cloudReady ||
+      !readyRef.current ||
+      loadingRef.current
+    ) {
+      return;
+    }
+
+    clearTimeout(timerRef.current);
+
+    timerRef.current = setTimeout(async () => {
+      try {
+        setSyncStatus('saving');
+
+        await api('/customer-data', {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          body: {
+            cart,
+            wishlist,
+            compare
+          }
+        });
+
+        setSyncStatus('synced');
+      } catch (error) {
+        console.error('Account shopping data save failed:', error);
+        setSyncStatus('error');
+      }
+    }, 700);
+
+    return () => clearTimeout(timerRef.current);
+  }, [cart, wishlist, compare, cloudReady]);
+
+  // Detect login/logout in another browser tab.
+  useEffect(() => {
+    const checkLogin = () => {
+      const token = getToken();
+
+      if (token !== tokenRef.current) {
+        tokenRef.current = token;
+        readyRef.current = false;
+        setCloudReady(false);
+        setSyncStatus('idle');
+        window.dispatchEvent(new Event('sowji-auth-changed'));
+      }
+    };
+
+    const handleAuth = () => {
+      const token = getToken();
+
+      if (token !== tokenRef.current) {
+        tokenRef.current = token;
+        readyRef.current = false;
+        setCloudReady(false);
+        setSyncStatus('idle');
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('storage', checkLogin);
+    window.addEventListener('sowji-auth-changed', handleAuth);
+
+    return () => {
+      window.removeEventListener('storage', checkLogin);
+      window.removeEventListener('sowji-auth-changed', handleAuth);
+    };
+  }, []);
 
   // ADD PRODUCT WITH SELECTED COLOUR
   const addToCart = (product, quantity = 1) => {
@@ -122,7 +283,7 @@ export function StoreProvider({ children }) {
     });
   };
 
-  // UPDATE ONLY THE SELECTED CART ITEM
+  // UPDATE CART QUANTITY
   const updateQty = (cartKeyOrId, quantity) => {
     const newQty = Number(quantity);
 
@@ -132,7 +293,7 @@ export function StoreProvider({ children }) {
       currentCart.map(item => {
         const matches =
           getCartKey(item) === cartKeyOrId ||
-          (!item.cartKey && item._id === cartKeyOrId);
+          item._id === cartKeyOrId;
 
         if (!matches) return item;
 
@@ -156,14 +317,13 @@ export function StoreProvider({ children }) {
     );
   };
 
-  // REMOVE ONLY THE SELECTED CART ITEM
+  // REMOVE CART ITEM
   const removeFromCart = (cartKeyOrId) => {
     setCart(currentCart =>
-      currentCart.filter(item => {
-        if (getCartKey(item) === cartKeyOrId) return false;
-
-        return item._id !== cartKeyOrId;
-      })
+      currentCart.filter(item =>
+        getCartKey(item) !== cartKeyOrId &&
+        item._id !== cartKeyOrId
+      )
     );
   };
 
@@ -218,7 +378,9 @@ export function StoreProvider({ children }) {
         removeFromCart,
         clearCart,
         toggleWish,
-        toggleCompare
+        toggleCompare,
+        cloudReady,
+        syncStatus
       }}
     >
       {children}
