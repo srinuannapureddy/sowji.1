@@ -6,6 +6,21 @@ import ProductCard from './ProductCard.jsx';
 
 const PAGE_SIZE = 12;
 
+const MAIN_COLOURS = [
+  ['Red', '#C62828'],
+  ['Maroon', '#681F32'],
+  ['Pink', '#E88AAE'],
+  ['Blue', '#2455A4'],
+  ['Green', '#287447'],
+  ['Yellow', '#E8C52E'],
+  ['Black', '#222222'],
+  ['White', '#F5F2EA'],
+  ['Purple', '#75418B'],
+  ['Orange', '#E87824'],
+  ['Gold', '#C6A04A'],
+  ['Beige', '#D8C3A2']
+];
+
 export default function ProductGrid({
   eyebrow,
   title,
@@ -81,28 +96,6 @@ export default function ProductGrid({
     [items]
   );
 
-  const colours = useMemo(() => {
-    const result = new Set();
-
-    items.forEach(product => {
-      if (product.color) result.add(product.color);
-
-      const variants = product.colors || product.colorVariants || [];
-
-      if (Array.isArray(variants)) {
-        variants.forEach(item => {
-          const value = typeof item === 'string'
-            ? item
-            : item?.name || item?.color;
-
-          if (value) result.add(value);
-        });
-      }
-    });
-
-    return [...result].sort();
-  }, [items]);
-
   const occasions = useMemo(
     () => [...new Set(items.map(p => p.occasion).filter(Boolean))].sort(),
     [items]
@@ -120,6 +113,9 @@ export default function ProductGrid({
           p.category,
           p.fabric,
           p.color,
+          ...(Array.isArray(p.colors) ? p.colors.map(v =>
+            typeof v === 'string' ? v : v?.name || v?.color || ''
+          ) : []),
           p.occasion,
           p.description
         ]
@@ -140,17 +136,22 @@ export default function ProductGrid({
 
     if (colour !== 'all') {
       result = result.filter(p => {
-        const variants = p.colors || p.colorVariants || [];
+        const variants = [
+          ...(Array.isArray(p.colors) ? p.colors : []),
+          ...(Array.isArray(p.colorVariants) ? p.colorVariants : [])
+        ];
 
-        const values = Array.isArray(variants)
-          ? variants.map(v =>
-              typeof v === 'string' ? v : v?.name || v?.color
-            )
-          : [];
+        const values = variants.map(v =>
+          typeof v === 'string'
+            ? v
+            : v?.name || v?.color || ''
+        );
 
         if (p.color) values.push(p.color);
 
-        return values.includes(colour);
+        return values.some(value =>
+          String(value).toLowerCase().includes(colour.toLowerCase())
+        );
       });
     }
 
@@ -298,6 +299,7 @@ export default function ProductGrid({
 
             <div className="space-y-6 py-5">
 
+              {/* SEARCH */}
               <div>
                 <label className={labelClass} htmlFor="sowji-search">
                   Search Sarees
@@ -311,6 +313,7 @@ export default function ProductGrid({
                 />
               </div>
 
+              {/* COLLECTION */}
               <div>
                 <label className={labelClass} htmlFor="sowji-category">
                   Collection
@@ -323,11 +326,14 @@ export default function ProductGrid({
                 >
                   <option value="all">All Collections</option>
                   {categories.map(value => (
-                    <option key={value} value={value}>{value}</option>
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
                   ))}
                 </select>
               </div>
 
+              {/* FABRIC */}
               <div>
                 <label className={labelClass} htmlFor="sowji-fabric">
                   Fabric
@@ -340,28 +346,59 @@ export default function ProductGrid({
                 >
                   <option value="all">All Fabrics</option>
                   {fabrics.map(value => (
-                    <option key={value} value={value}>{value}</option>
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
                   ))}
                 </select>
               </div>
 
+              {/* MAIN COLOUR FILTER */}
               <div>
-                <label className={labelClass} htmlFor="sowji-colour">
-                  Colour
-                </label>
-                <select
-                  id="sowji-colour"
-                  value={colour}
-                  onChange={e => setColour(e.target.value)}
-                  className={selectClass}
-                >
-                  <option value="all">All Colours</option>
-                  {colours.map(value => (
-                    <option key={value} value={value}>{value}</option>
+                <p className={labelClass}>Colour</p>
+
+                <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+                  {MAIN_COLOURS.map(([name, hex]) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() =>
+                        setColour(current =>
+                          current === name ? 'all' : name
+                        )
+                      }
+                      className={`flex items-center gap-2 text-left text-xs transition-colors ${
+                        colour === name
+                          ? 'font-semibold text-[#681f32]'
+                          : 'text-[#62564d] hover:text-[#681f32]'
+                      }`}
+                      aria-pressed={colour === name}
+                    >
+                      <span
+                        className={`h-5 w-5 shrink-0 rounded-full border ${
+                          colour === name
+                            ? 'border-[#681f32] ring-2 ring-[#c6a04a] ring-offset-2'
+                            : 'border-[#d8cec1]'
+                        }`}
+                        style={{ backgroundColor: hex }}
+                      />
+                      {name}
+                    </button>
                   ))}
-                </select>
+                </div>
+
+                {colour !== 'all' && (
+                  <button
+                    type="button"
+                    onClick={() => setColour('all')}
+                    className="mt-3 text-[10px] uppercase tracking-wider text-[#94764d] underline underline-offset-4"
+                  >
+                    Clear colour
+                  </button>
+                )}
               </div>
 
+              {/* OCCASION */}
               <div>
                 <label className={labelClass} htmlFor="sowji-occasion">
                   Occasion
@@ -374,11 +411,14 @@ export default function ProductGrid({
                 >
                   <option value="all">All Occasions</option>
                   {occasions.map(value => (
-                    <option key={value} value={value}>{value}</option>
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
                   ))}
                 </select>
               </div>
 
+              {/* PRICE RANGE */}
               <div>
                 <p className={labelClass}>Price Range (₹)</p>
                 <div className="grid grid-cols-2 gap-3">
@@ -468,6 +508,7 @@ export default function ProductGrid({
               </div>
             )}
 
+            {/* PAGINATION */}
             {pageCount > 1 && (
               <nav
                 aria-label="Saree collection pages"
