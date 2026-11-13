@@ -1,29 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sowji Collections | Premium Traditional Indian Sarees</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Royal Indian Look -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        royalMaroon: '#581c87',
+                        deepWine: '#701a75',
+                        goldAccent: '#d4af37',
+                        softGold: '#fef3c7',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Infinite Circular / Sliding Marquee Animation */
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            display: flex;
+            width: max-content;
+            animation: marquee 25s linear infinite;
+        }
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans antialiased">
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Top Announcement Bar -->
+    <div class="bg-gradient-to-r from-purple-950 via-rose-950 to-purple-950 text-amber-200 text-xs sm:text-sm py-2 px-4 text-center font-medium tracking-wide">
+        ✨ Free Pan-India Shipping on All Orders | Handcrafted Traditional Pattu & Designer Sarees ✨
+    </div>
 
-    <title>Sowji Collections | Elegance Woven in Every Thread</title>
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-600 to-amber-400 flex items-center justify-center text-white font-serif font-bold text-xl shadow-md">SC</div>
+                <div>
+                    <span class="font-serif text-2xl font-bold tracking-tight text-stone-900 block">Sowji Collections</span>
+                    <span class="text-[10px] uppercase tracking-widest text-amber-700 font-semibold">Royal Traditional Weaves</span>
+                </div>
+            </a>
+            <nav class="hidden md:flex items-center space-x-8 font-medium text-stone-700">
+                <a href="#" class="text-rose-900 font-semibold border-b-2 border-rose-900 pb-1">Home</a>
+                <a href="#collection" class="hover:text-rose-900 transition">Collections</a>
+                <a href="#featured" class="hover:text-rose-900 transition">New Arrivals</a>
+                <a href="#about" class="hover:text-rose-900 transition">Our Story</a>
+            </nav>
+            <div class="flex items-center space-x-4">
+                <a href="https://wa.me/918341080530" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-2 shadow transition">
+                    <i class="fa-brands fa-whatsapp text-lg"></i>
+                    <span class="hidden sm:inline">Order on WhatsApp</span>
+                </a>
+            </div>
+        </div>
+    </header>
 
-    <meta
-      name="description"
-      content="Shop Kanchipuram, Banarasi, Mangalagiri and designer sarees at Sowji Collections."
-    />
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-b from-purple-950 via-rose-950 to-stone-900 text-white py-20 lg:py-28 overflow-hidden">
+        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <span class="text-amber-300 uppercase tracking-widest text-xs font-semibold bg-amber-950/60 border border-amber-500/30 px-4 py-1.5 rounded-full inline-block mb-6">Festive & Wedding Edit 2026</span>
+            <h1 class="font-serif text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight max-w-4xl mx-auto leading-tight mb-6">
+                Embrace Elegance with <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200">Royal Indian Sarees</span>
+            </h1>
+            <p class="text-stone-300 text-lg sm:text-xl max-w-2xl mx-auto mb-10 font-light">
+                Handpicked traditional masterpieces straight from master weavers. Discover pure Kanchipuram pattu, rich tissue brocades, and graceful festive drapes.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#featured" class="bg-gradient-to-r from-amber-500 to-yellow-600 text-stone-950 font-bold px-8 py-4 rounded-full shadow-lg hover:brightness-110 transition">
+                    Explore Premium Catalog
+                </a>
+                <a href="https://instagram.com" target="_blank" class="border border-amber-400/40 bg-white/5 hover:bg-white/10 text-amber-200 px-8 py-4 rounded-full transition flex items-center justify-center space-x-2">
+                    <i class="fa-brands fa-instagram"></i>
+                    <span>View Instagram Gallery</span>
+                </a>
+            </div>
+        </div>
+    </section>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Circular Motion / Continuous Marquee of Saree Collections -->
+    <div class="bg-stone-900 py-6 overflow-hidden border-y border-amber-500/20">
+        <div class="flex animate-marquee space-x-8 items-center">
+            <!-- Marquee Item 1 -->
+            <div class="flex items-center space-x-3 bg-stone-800/80 border border-amber-500/30 px-6 py-3 rounded-full text-amber-100 shadow-inner shrink-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="font-serif font-medium tracking-wide">Pure Kanchipuram Pattu</span>
+            </div>
+            <!-- Marquee Item 2 -->
+            <div class="flex items-center space-x-3 bg-stone-800/80 border border-amber-500/30 px-6 py-3 rounded-full text-amber-100 shadow-inner shrink-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="font-serif font-medium tracking-wide">Banaras Tissue Zari Weave</span>
+            </div>
+            <!-- Marquee Item 3 -->
+            <div class="flex items-center space-x-3 bg-stone-800/80 border border-amber-500/30 px-6 py-3 rounded-full text-amber-100 shadow-inner shrink-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="font-serif font-medium tracking-wide">Gadwal Silk with Heavy Pallu</span>
+            </div>
+            <!-- Marquee Item 4 -->
+            <div class="flex items-center space-x-3 bg-stone-800/80 border border-amber-500/30 px-6 py-3 rounded-full text-amber-100 shadow-inner shrink-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="font-serif font-medium tracking-wide">Uppada Jamdani Masterpieces</span>
+            </div>
+            <!-- Marquee Item 5 -->
+            <div class="flex items-center space-x-3 bg-stone-800/80 border border-amber-500/30 px-6 py-3 rounded-full text-amber-100 shadow-inner shrink-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="font-serif font-medium tracking-wide">Designer Organza Floral Drapes</span>
+            </div>
+            <!-- Duplicate for infinite seamless loop -->
+            <div class="flex items-center space-x-3 bg-stone-800/80 border border-amber-500/30 px-6 py-3 rounded-full text-amber-100 shadow-inner shrink-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="font-serif font-medium tracking-wide">Pure Kanchipuram Pattu</span>
+            </div>
+            <div class="flex items-center space-x-3 bg-stone-800/80 border border-amber-500/30 px-6 py-3 rounded-full text-amber-100 shadow-inner shrink-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span class="font-serif font-medium tracking-wide">Banaras Tissue Zari Weave</span>
+            </div>
+        </div>
+    </div>
 
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Playfair+Display:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap"
-      rel="stylesheet"
-    />
-  </head>
+    <!-- Featured Premium Sarees Section -->
+    <section id="featured" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-rose-800 font-semibold text-sm tracking-widest uppercase block mb-2">Exclusive Handpicked Gallery</span>
+            <h2 class="font-serif text-3xl sm:text-5xl font-bold text-stone-900">Featured Traditional Masterpieces</h2>
+            <div class="w-24 h-1 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+        </div>
 
-  <body>
-    <div id="root"></div>
+        <!-- Product Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
-    <script type="module" src="./main.jsx"></script>
-  </body>
+            <!-- Product Card 1 -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition duration-300 border border-stone-200 flex flex-col group">
+                <div class="relative overflow-hidden aspect-[3/4] bg-stone-100">
+                    <span class="absolute top-3 left-3 z-10 bg-rose-900 text-amber-200 text-xs font-semibold px-3 py-1 rounded-full shadow">Best Seller</span>
+                    <img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80" alt="Royal Kanchipuram Pattu Saree" class="object-cover w-full h-full group-hover:scale-105 transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-serif text-xl font-bold text-stone-900">Royal Kanchipuram Brocade Pattu</h3>
+                            <span class="text-rose-900 font-bold text-lg">₹2,499</span>
+                        </div>
+                        <p class="text-stone-600 text-sm mb-4 line-clamp-2">Authentic rich gold zari weaving with traditional peacock motif border and grand pallu.</p>
+                        <!-- Color Options Swatches -->
+                        <div class="flex items-center space-x-2 mb-4">
+                            <span class="text-xs text-stone-500 font-medium">Colors:</span>
+                            <span class="w-4 h-4 rounded-full bg-red-800 border border-stone-300" title="Royal Red"></span>
+                            <span class="w-4 h-4 rounded-full bg-emerald-800 border border-stone-300" title="Emerald Green"></span>
+                            <span class="w-4 h-4 rounded-full bg-purple-900 border border-stone-300" title="Deep Wine"></span>
+                        </div>
+                    </div>
+                    <a href="https://wa.me/918341080530?text=Hi,%20I%20want%20to%20order%20Royal%20Kanchipuram%20Brocade%20Pattu%20(₹2,499)" target="_blank" class="w-full bg-stone-900 hover:bg-rose-900 text-white font-medium py-3 rounded-xl text-center transition flex items-center justify-center space-x-2 shadow">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                        <span>Enquire / Book on WhatsApp</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Product Card 2 -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition duration-300 border border-stone-200 flex flex-col group">
+                <div class="relative overflow-hidden aspect-[3/4] bg-stone-100">
+                    <span class="absolute top-3 left-3 z-10 bg-amber-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">New Arrival</span>
+                    <img src="https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80" alt="Banaras Tissue Saree" class="object-cover w-full h-full group-hover:scale-105 transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-serif text-xl font-bold text-stone-900">Banaras Tissue Meena Saree</h3>
+                            <span class="text-rose-900 font-bold text-lg">₹1,899</span>
+                        </div>
+                        <p class="text-stone-600 text-sm mb-4 line-clamp-2">Luminous tissue fabric with delicate multicolour meenakari floral work and rich contrasting blouse.</p>
+                        <!-- Color Options Swatches -->
+                        <div class="flex items-center space-x-2 mb-4">
+                            <span class="text-xs text-stone-500 font-medium">Colors:</span>
+                            <span class="w-4 h-4 rounded-full bg-amber-200 border border-stone-300" title="Champagne Gold"></span>
+                            <span class="w-4 h-4 rounded-full bg-sky-300 border border-stone-300" title="Sky Blue"></span>
+                            <span class="w-4 h-4 rounded-full bg-rose-300 border border-stone-300" title="Rose Pink"></span>
+                        </div>
+                    </div>
+                    <a href="https://wa.me/918341080530?text=Hi,%20I%20want%20to%20order%20Banaras%20Tissue%20Meena%20Saree%20(₹1,899)" target="_blank" class="w-full bg-stone-900 hover:bg-rose-900 text-white font-medium py-3 rounded-xl text-center transition flex items-center justify-center space-x-2 shadow">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                        <span>Enquire / Book on WhatsApp</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Product Card 3 -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition duration-300 border border-stone-200 flex flex-col group">
+                <div class="relative overflow-hidden aspect-[3/4] bg-stone-100">
+                    <span class="absolute top-3 left-3 z-10 bg-purple-900 text-amber-200 text-xs font-semibold px-3 py-1 rounded-full shadow">Trending Festive</span>
+                    <img src="https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80" alt="Gadwal Pattu Saree" class="object-cover w-full h-full group-hover:scale-105 transition duration-500">
+                </div>
+                <div class="p-6 flex flex-col flex-grow justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-serif text-xl font-bold text-stone-900">Vintage Seiko Gadwal Pattu</h3>
+                            <span class="text-rose-900 font-bold text-lg">₹1,500</span>
+                        </div>
+                        <p class="text-stone-600 text-sm mb-4 line-clamp-2">Lightweight yet rich traditional Gadwal weave featuring an attached contrast traditional zari border.</p>
+                        <!-- Color Options Swatches -->
+                        <div class="flex items-center space-x-2 mb-4">
+                            <span class="text-xs text-stone-500 font-medium">Colors:</span>
+                            <span class="w-4 h-4 rounded-full bg-orange-700 border border-stone-300" title="Rust Orange"></span>
+                            <span class="w-4 h-4 rounded-full bg-cyan-900 border border-stone-300" title="Peacock Blue"></span>
+                            <span class="w-4 h-4 rounded-full bg-amber-500 border border-stone-300" title="Mustard Yellow"></span>
+                        </div>
+                    </div>
+                    <a href="https://wa.me/918341080530?text=Hi,%20I%20want%20to%20order%20Vintage%20Seiko%20Gadwal%20Pattu%20(₹1,500)" target="_blank" class="w-full bg-stone-900 hover:bg-rose-900 text-white font-medium py-3 rounded-xl text-center transition flex items-center justify-center space-x-2 shadow">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                        <span>Enquire / Book on WhatsApp</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 py-12 border-t border-stone-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <span class="font-serif text-2xl font-bold text-white block mb-2">Sowji Collections</span>
+            <p class="text-sm text-stone-400 max-w-md mx-auto mb-6">Your premier online destination for authentic Indian traditional sarees, soft silk drapes, and festive wear.</p>
+            <p class="text-xs text-stone-400">© 2026 Sowji Collections. All Rights Reserved. Built with ❤️ for Saree Lovers.</p>
+        </div>
+    </footer>
+
+</body>
 </html>
