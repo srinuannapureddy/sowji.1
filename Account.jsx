@@ -1,130 +1,182 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { api } from './client.js';
+
+const TOKEN = 'sowji_customer_token';
 
 export default function Account() {
   const [mode, setMode] = useState('login');
-
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: ''
+    name: '', email: '', phone: '', password: ''
   });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
-  function updateField(e) {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
+  useEffect(() => {
+    let active = true;
+
+    async function loadUser() {
+      const token = localStorage.getItem(TOKEN);
+
+      if (!token) {
+        if (active) setLoading(false);
+        return;
+      }
+
+      try {
+        const result = await api('/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (active) setUser(result.user);
+      } catch {
+        localStorage.removeItem(TOKEN);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    loadUser();
+    return () => { active = false; };
+  }, []);
+
+  function update(e) {
+    setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  function handleSubmit(e) {
+  async function submit(e) {
     e.preventDefault();
+    setError('');
+    setMessage('');
 
-    alert(
-      'Account authentication is not connected yet. Please contact the store for assistance.'
-    );
+    if (busy) return;
+
+    setBusy(true);
+
+    try {
+      const register = mode === 'register';
+
+      const result = await api(
+        register ? '/auth/register' : '/auth/login',
+        {
+          method: 'POST',
+          body: register
+            ? form
+            : { email: form.email, password: form.password }
+        }
+      );
+
+      if (!result.token || !result.user) {
+        throw new Error('Unexpected server response.');
+      }
+
+      localStorage.setItem(TOKEN, result.token);
+      setUser(result.user);
+      setForm({ name: '', email: '', phone: '', password: '' });
+      setMessage(result.message);
+    } catch (err) {
+      setError(err.message || 'Something went wrong.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem(TOKEN);
+    setUser(null);
+    setMode('login');
+    setMessage('You have signed out.');
+    setError('');
+  }
+
+  if (loading) {
+    return <div className="min-h-[60vh] p-16 text-center">Loading account...</div>;
   }
 
   return (
     <section className="min-h-[75vh] bg-[#fbf8f2] px-5 py-16">
-      <div className="mx-auto max-w-md">
-        <div className="border border-[#e8dfd2] bg-white p-8 shadow-sm">
-          <p className="text-center text-xs uppercase tracking-[0.3em] text-[#a17b48]">
-            Sowji Collections
-          </p>
+      <div className="mx-auto max-w-md border border-[#e8dfd2] bg-white p-8 shadow-sm">
+        <p className="text-center text-xs uppercase tracking-[0.3em] text-[#a17b48]">
+          Sowji Collections
+        </p>
 
-          <h1 className="mt-4 text-center font-display text-4xl text-[#681f32]">
-            My Account
-          </h1>
+        <h1 className="mt-4 text-center font-display text-4xl text-[#681f32]">
+          {user ? 'My Account' : 'Welcome'}
+        </h1>
 
-          <p className="mt-3 text-center text-sm text-[#81776e]">
-            Welcome to the world of timeless elegance.
-          </p>
+        {message && <p role="status" className="mt-5 bg-green-50 p-3 text-sm text-green-800">{message}</p>}
+        {error && <p role="alert" className="mt-5 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
-          <div className="mt-8 grid grid-cols-2 border-b border-[#e8dfd2]">
-            <button
-              type="button"
-              onClick={() => setMode('login')}
-              className={`py-3 text-xs uppercase tracking-widest ${
-                mode === 'login'
-                  ? 'border-b-2 border-[#681f32] text-[#681f32]'
-                  : 'text-[#81776e]'
-              }`}
-            >
-              Login
-            </button>
+        {user ? (
+          <div className="mt-8 space-y-5">
+            <p><b>Name:</b> {user.name}</p>
+            <p><b>Email:</b> {user.email}</p>
+            <p><b>Phone:</b> {user.phone}</p>
 
-            <button
-              type="button"
-              onClick={() => setMode('register')}
-              className={`py-3 text-xs uppercase tracking-widest ${
-                mode === 'register'
-                  ? 'border-b-2 border-[#681f32] text-[#681f32]'
-                  : 'text-[#81776e]'
-              }`}
-            >
-              Register
+            <Link to="/shop" className="block bg-[#681f32] p-4 text-center text-white">
+              Explore Sarees
+            </Link>
+
+            <Link to="/cart" className="block border p-4 text-center">
+              My Shopping Bag
+            </Link>
+
+            <Link to="/wishlist" className="block border p-4 text-center">
+              My Wishlist
+            </Link>
+
+            <button onClick={logout} className="w-full p-3 text-sm underline">
+              Sign Out
             </button>
           </div>
+        ) : (
+          <>
+            <div className="mt-8 grid grid-cols-2 border-b">
+              <button onClick={() => { setMode('login'); setError(''); setMessage(''); }}
+                className={`p-3 ${mode === 'login' ? 'border-b-2 border-[#681f32] text-[#681f32]' : ''}`}>
+                Login
+              </button>
+              <button onClick={() => { setMode('register'); setError(''); setMessage(''); }}
+                className={`p-3 ${mode === 'register' ? 'border-b-2 border-[#681f32] text-[#681f32]' : ''}`}>
+                Register
+              </button>
+            </div>
 
-          <form onSubmit={handleSubmit} className="mt-7 space-y-4">
-            {mode === 'register' && (
-              <input
-                name="name"
-                value={form.name}
-                onChange={updateField}
-                placeholder="Full name"
-                required
-                className="w-full border border-[#e8dfd2] px-4 py-3 text-sm outline-none focus:border-[#681f32]"
-              />
-            )}
+            <form onSubmit={submit} className="mt-7 space-y-4">
+              {mode === 'register' && (
+                <>
+                  <input name="name" value={form.name} onChange={update}
+                    placeholder="Full name" required maxLength={80}
+                    className="w-full border p-3" />
 
-            <input
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={updateField}
-              placeholder="Email address"
-              required
-              className="w-full border border-[#e8dfd2] px-4 py-3 text-sm outline-none focus:border-[#681f32]"
-            />
+                  <input name="phone" type="tel" value={form.phone}
+                    onChange={update} placeholder="Phone number"
+                    required maxLength={16}
+                    className="w-full border p-3" />
+                </>
+              )}
 
-            {mode === 'register' && (
-              <input
-                name="phone"
-                type="tel"
-                value={form.phone}
-                onChange={updateField}
-                placeholder="Phone number"
-                required
-                className="w-full border border-[#e8dfd2] px-4 py-3 text-sm outline-none focus:border-[#681f32]"
-              />
-            )}
+              <input name="email" type="email" value={form.email}
+                onChange={update} placeholder="Email address"
+                required className="w-full border p-3" />
 
-            <input
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={updateField}
-              placeholder="Password"
-              required
-              minLength={6}
-              className="w-full border border-[#e8dfd2] px-4 py-3 text-sm outline-none focus:border-[#681f32]"
-            />
+              <input name="password" type="password" value={form.password}
+                onChange={update}
+                placeholder={mode === 'register' ? 'Create password (8+ characters)' : 'Password'}
+                minLength={mode === 'register' ? 8 : 1}
+                maxLength={72} required className="w-full border p-3" />
 
-            <button
-              type="submit"
-              className="w-full bg-[#681f32] px-6 py-4 text-xs uppercase tracking-[0.2em] text-white transition hover:bg-[#4f1726]"
-            >
-              {mode === 'login' ? 'Sign In' : 'Create Account'}
-            </button>
-          </form>
-
-          <p className="mt-6 text-center text-xs leading-6 text-[#81776e]">
-            Your Sowji Collections shopping experience begins here.
-          </p>
-        </div>
+              <button disabled={busy} type="submit"
+                className="w-full bg-[#681f32] p-4 text-xs uppercase tracking-widest text-white disabled:opacity-60">
+                {busy ? 'Please wait...' : mode === 'register' ? 'Create Account' : 'Sign In'}
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </section>
   );
