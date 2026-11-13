@@ -21,6 +21,7 @@ import Cart from './Cart.jsx';
 import Wishlist from './Wishlist.jsx';
 import ProductDetails from './ProductDetails.jsx';
 import Account from './Account.jsx';
+import Admin from './Admin.jsx';
 
 function ScrollToTop() {
   const { pathname, search } = useLocation();
@@ -56,34 +57,42 @@ function NotFound() {
 }
 
 export default function App() {
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
+
   return (
     <>
       <ScrollToTop />
 
-      <div className="flex min-h-screen flex-col bg-[#fbf8f2]">
-        <Header />
+      {isAdminPage ? (
+        <Routes>
+          <Route path="/admin" element={<Admin />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      ) : (
+        <div className="flex min-h-screen flex-col bg-[#fbf8f2]">
+          <Header />
 
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/category/:slug" element={<Shop />} />
-            <Route path="/product/:slug" element={<ProductDetails />} />
-            <Route path="/collections" element={<Collections />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/account" element={<Account />} />
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/shop" element={<Shop />} />
+              <Route path="/category/:slug" element={<Shop />} />
+              <Route path="/product/:slug" element={<ProductDetails />} />
+              <Route path="/collections" element={<Collections />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/account" element={<Account />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-
-        <Footer />
-      </div>
-
-      <WhatsAppButton />
+          <Footer />
+          <WhatsAppButton />
+        </div>
+      )}
     </>
   );
 }
