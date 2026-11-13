@@ -28,6 +28,8 @@ function SectionHeading({ eyebrow, title, description }) {
 
 export default function Home() {
   const [categories, setCategories] = useState(fallbackCategories);
+  const [lookbookImages, setLookbookImages] = useState([]);
+  const [lookbookLoading, setLookbookLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -46,11 +48,64 @@ export default function Home() {
           setCategories(sareeCategories);
         }
       } catch {
-        // Keep the default categories if the request fails.
+        // Keep fallback categories.
       }
     }
 
     loadCategories();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Load genuine photographs from published Sowji products.
+  useEffect(() => {
+    let active = true;
+
+    async function loadLookbook() {
+      try {
+        const data = await api('/products?limit=40');
+
+        if (!active) return;
+
+        const products = Array.isArray(data.items)
+          ? data.items
+          : [];
+
+        const photographs = products
+          .filter(product =>
+            product.isVerified === true &&
+            Array.isArray(product.images)
+          )
+          .flatMap(product =>
+            product.images
+              .filter(image =>
+                image &&
+                typeof image.url === 'string' &&
+                image.url.trim()
+              )
+              .map(image => ({
+                url: image.url,
+                name: product.name || 'Sowji Saree',
+                alt: image.alt || product.name || 'Sowji saree photograph'
+              }))
+          );
+
+        const uniquePhotographs = photographs.filter(
+          (photo, index, array) =>
+            array.findIndex(item => item.url === photo.url) === index
+        );
+
+        setLookbookImages(uniquePhotographs.slice(0, 4));
+      } catch {
+        if (active) setLookbookImages([]);
+      } finally {
+        if (active) setLookbookLoading(false);
+      }
+    }
+
+    loadLookbook();
 
     return () => {
       active = false;
@@ -135,7 +190,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* EMPTY HERO PHOTOGRAPH AREA */}
+          {/* HERO PHOTOGRAPH AREA */}
           <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden bg-[#e5d9ca] md:min-h-full">
             <div className="absolute inset-5 border border-[#b89555]/50" />
             <div className="absolute inset-9 border border-[#b89555]/30" />
@@ -146,7 +201,7 @@ export default function Home() {
                 The Sowji Edit
               </p>
               <p className="mt-3 text-[9px] uppercase tracking-[3px] text-[#92785c]">
-                Saree photography coming soon
+                A celebration of Indian sarees
               </p>
             </div>
           </div>
@@ -213,7 +268,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* NEW ARRIVALS - REAL PRODUCTS ONLY */}
+      {/* NEW ARRIVALS */}
       <section className="bg-[#f0e8dc] px-4 py-16 md:px-8 md:py-24">
         <div className="mx-auto max-w-7xl">
           <ProductGrid
@@ -226,30 +281,57 @@ export default function Home() {
         </div>
       </section>
 
-      {/* EMPTY PHOTOGRAPH GRID */}
+      {/* REAL SAREE PHOTOGRAPH GRID */}
       <section className="px-5 py-16 md:py-24">
         <div className="mx-auto max-w-7xl">
           <SectionHeading
             eyebrow="THE SOWJI LOOKBOOK"
             title="Discover the Art of Draping"
-            description="Our saree lookbook will be updated with original collection photographs."
+            description="Explore the beauty of our saree collection through original Sowji product photographs."
           />
 
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
-            {[1, 2, 3, 4].map(number => (
-              <div
-                key={number}
-                className="flex aspect-[3/4] items-center justify-center border border-dashed border-[#d9c8b1] bg-[#f4eee5]"
-              >
-                <div className="text-center">
-                  <span className="text-3xl text-[#b89555]">✧</span>
-                  <p className="mt-3 text-[9px] uppercase tracking-[2px] text-[#92785c]">
-                    Collection image
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          {lookbookLoading ? (
+            <div className="py-16 text-center text-sm text-[#81746c]">
+              Loading our saree lookbook…
+            </div>
+          ) : lookbookImages.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+              {lookbookImages.map((photo, index) => (
+                <Link
+                  key={photo.url}
+                  to="/shop"
+                  className="sowji-home-card group relative block aspect-[3/4] overflow-hidden bg-[#eee4d8]"
+                >
+                  <img
+                    src={photo.url}
+                    alt={photo.alt}
+                    loading="lazy"
+                    className="sowji-home-image h-full w-full object-cover"
+                  />
+
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-5 pt-12">
+                    <p className="font-display text-base text-white md:text-lg">
+                      {photo.name}
+                    </p>
+                    <p className="mt-1 text-[9px] uppercase tracking-[2px] text-white/80">
+                      Explore Sarees →
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="border border-dashed border-[#d9c8b1] bg-[#f4eee5] px-5 py-16 text-center">
+              <span className="text-4xl text-[#b89555]">✧</span>
+              <p className="mt-4 font-display text-xl text-[#541b30]">
+                Your Sowji Lookbook
+              </p>
+              <p className="mt-2 text-sm text-[#81746c]">
+                Verified saree photographs uploaded through Admin will
+                appear here automatically.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
